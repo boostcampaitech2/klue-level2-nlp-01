@@ -139,3 +139,5 @@ cython_debug/
 ._*
 *.pkl
 nohup.out
+best_model
+results
