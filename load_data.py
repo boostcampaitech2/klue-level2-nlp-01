@@ -2,41 +2,41 @@ import pickle as pickle
 import os
 import pandas as pd
 import torch
+from basecode.load_data import RE_Dataset, load_data as ld_base
 
+TRAIN_DATA_PATH = "/opt/ml/dataset/train/train.csv"
+TEST_DATA_PATH = "/opt/ml/dataset/test/test_data.csv"
 
-class RE_Dataset(torch.utils.data.Dataset):
-  """ Dataset 구성을 위한 class."""
-  def __init__(self, pair_dataset, labels):
-    self.pair_dataset = pair_dataset
-    self.labels = labels
+def load_train_data():
+  """ pandas 형식의 훈련 데이터 """
+  return ld_base(TRAIN_DATA_PATH)
 
-  def __getitem__(self, idx):
-    item = {key: val[idx].clone().detach() for key, val in self.pair_dataset.items()}
-    item['labels'] = torch.tensor(self.labels[idx])
-    return item
+def load_test_data():
+  """ pandas 형식의 테스트 데이터 """
+  return ld_base(TEST_DATA_PATH)
 
-  def __len__(self):
-    return len(self.labels)
+def additional_data():
+  config = {
+    "change_entity": {"subject_entity": "object_entity", "object_entity": "subject_entity"},
+    "remain_label_list": ['no_relation', 'org:members', 'org:alternate_names',
+                  'per:children', 'per:alternate_names', 'per:other_family', 
+                  'per:colleagues', 'per:siblings', 'per:spouse',
+                  'org:member_of', 'per:parents'],
+    "change_values": { "org:member_of": "org:members", 
+                      "org:members": "org:member_of", 
+                      "per:parents": "per:children", 
+                      "per:children": "per:parents" },
+    "cols": ['id', 'sentence', 'subject_entity', 'object_entity', 'label']
+  }
 
-def preprocessing_dataset(dataset):
-  """ 처음 불러온 csv 파일을 원하는 형태의 DataFrame으로 변경 시켜줍니다."""
-  subject_entity = []
-  object_entity = []
-  for i,j in zip(dataset['subject_entity'], dataset['object_entity']):
-    i = i[1:-1].split(',')[0].split(':')[1]
-    j = j[1:-1].split(',')[0].split(':')[1]
+  add_data = load_train_data().rename(columns=config['change_entity']) # 훈련 데이터를 불러오고 subject_entity와 object_entity만 바꾼다.
+  add_data = add_data[add_data.label.isin(config['remain_label_list'])] # 추가 데이터를 만들 수 있는 라벨만 남긴다
+  add_data = add_data[config["cols"]] # 속성 정렬을 해준다 (정렬을 안할경우 obj와 sub의 순서가 바뀌어 보기 불편함)
+  add_data = add_data.replace({ "label": config['change_values'] }) # 서로 반대되는 뜻을 가진 라벨을 바꿔준다.
+  return add_data 
 
-    subject_entity.append(i)
-    object_entity.append(j)
-  out_dataset = pd.DataFrame({'id':dataset['id'], 'sentence':dataset['sentence'],'subject_entity':subject_entity,'object_entity':object_entity,'label':dataset['label'],})
-  return out_dataset
-
-def load_data(dataset_dir):
-  """ csv 파일을 경로에 맡게 불러 옵니다. """
-  pd_dataset = pd.read_csv(dataset_dir)
-  dataset = preprocessing_dataset(pd_dataset)
-  
-  return dataset
+def train_data_with_addition():
+  return load_train_data().append(additional_data())
 
 def tokenized_dataset(dataset, tokenizer):
   """ tokenizer에 따라 sentence를 tokenizing 합니다."""
@@ -55,3 +55,6 @@ def tokenized_dataset(dataset, tokenizer):
       add_special_tokens=True,
       )
   return tokenized_sentences
+
+if __name__ == "__main__":
+  print(len(train_data_with_addition()))
