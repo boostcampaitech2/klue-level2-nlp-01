@@ -35,8 +35,11 @@ def additional_data():
   add_data = add_data.replace({ "label": config['change_values'] }) # 서로 반대되는 뜻을 가진 라벨을 바꿔준다.
   return add_data 
 
+# id를 새로 배정 해 줘야 하나?
 def train_data_with_addition():
-  return load_train_data().append(additional_data())
+  added_data = load_train_data().append(additional_data())
+  added_data = added_data.drop_duplicates(subset=['subject_entity', 'object_entity', 'sentence'], keep='first') # 중복데이터 제거
+  return added_data
 
 def tokenized_dataset(dataset, tokenizer):
   """ tokenizer에 따라 sentence를 tokenizing 합니다."""
