@@ -7,7 +7,7 @@ from transformers import AutoTokenizer
 
 
 class DataModule(pl.LightningDataModule):
-    def __init__(self, model_name="klue/bert-base", batch_size=128, version=1):
+    def __init__(self, model_name="klue/bert-base", batch_size=128, version=2):
         super().__init__()
 
         typed_entity_marker = ['[S:PER]', '[/S:PER]', '[S:ORG]', '[/S:ORG]',
@@ -17,15 +17,22 @@ class DataModule(pl.LightningDataModule):
         
         self.batch_size = batch_size
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.add_special_tokens({"additional_special_tokens": typed_entity_marker})
-        # typed-entity-marker를 위한 special token 추가
-        # model 에 embedding layer 바꿔주기
-
-        # if version == 1:
-        #     self.preprocess = self.data_preprocess1
-        #     # tokenize_data 함수에서 문장을 pair로 넣는 것과 하나로 넣는 것 차이 보정 필요.
-        # else:
-        #     self.preprocess = self.data_preprocess2
+        
+        if version == 1:
+            # ... sentence ...  ->  <sub_entity>[SEP]<ob_entity>[SEP]... sentence ...
+            self.preprocess = self.data_preprocess1 
+        else:
+            # ... sentence ...  -> ... [S:type]sub_entity[/S:type] ... [O:type]ob_entity[/O:type] ...
+            self.preprocess = self.data_preprocess2
+            self.tokenizer.add_special_tokens({"additional_special_tokens": typed_entity_marker})
+            # typed-entity-marker를 위한 special token 추가
+            # model 에서 embedding layer 바꿔주어야 함.
+        
+        if "roberta" in model_name:
+            # RoBERTa 모델을 사용할 경우 token_type_ids를 반환하지 않도록 설정
+            self.return_token_type_ids = False
+        else:
+            self.return_token_type_ids = True
 
     def prepare_data(self):
         klue_re = load_dataset('klue', 're')
@@ -33,14 +40,16 @@ class DataModule(pl.LightningDataModule):
         self.valid_data = klue_re['validation']
         
         with open('/opt/ml/klue/dict_klue_label_mapper.pkl', 'rb') as f:
-            self.label_mapper = pickle.load(f)
+            self.label_mapper = pickle.load(f) # klue data lavel -> train.csv data label
         
         self.train_data = self.train_data.map(self.data_preprocess2, num_proc=4, remove_columns=["subject_entity", "object_entity"])
         self.valid_data = self.valid_data.map(self.data_preprocess2, num_proc=4, remove_columns=["subject_entity", "object_entity"])
 
     def data_preprocess1(self, example):
         example["label"] = self.label_mapper[example["label"]]
-        return {"entity_span": example["subject_entity"]["word"] + "[SEP]" + example["object_entity"]["word"]}
+        entity_span = example["subject_entity"]["word"] + "[SEP]" + example["object_entity"]["word"]
+        example["sentence"] = entity_span + "[SEP]" + example["sentence"]
+        return example
         
     def data_preprocess2(self, example):
         example["label"] = self.label_mapper[example["label"]]
@@ -56,12 +65,13 @@ class DataModule(pl.LightningDataModule):
         
     def tokenize_data(self, example):
         return self.tokenizer(
-            # example["entity_span"],  # 이부분 전처리 방식에 따라 자동 보정 필요
+            # example["entity_span"],  # data_preprocess1 함수를 single sentence로 넣어도 pair sentence를 입력한 것 같은 결과가 나오도록 조정. 
             example["sentence"], 
             truncation=True, 
             padding="max_length", 
             max_length=256, 
-            add_special_tokens=True
+            add_special_tokens=True,
+            return_token_type_ids=self.return_token_type_ids,
         )
     
     def setup(self, stage=None):
