@@ -1,6 +1,6 @@
 name: "model_train_1"
 select_model: 9 # model.yaml 참고, 해당모델 index를 가져온다
-dir_path:
+dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
   train_data_path: "/opt/ml/dataset/train/train.csv"
