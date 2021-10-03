@@ -73,8 +73,12 @@ def train(cfg):
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
     # tokenizing dataset
-    tokenized_train = tokenized_dataset_with_special_tokens(train_dataset, tokenizer)
-    tokenized_valid = tokenized_dataset_with_special_tokens(valid_dataset, tokenizer)
+    tokenized_train = tokenized_dataset_with_least_special_tokens(
+        train_dataset, tokenizer
+    )
+    tokenized_valid = tokenized_dataset_with_least_special_tokens(
+        valid_dataset, tokenizer
+    )
 
     tokenizer.save_pretrained(
         os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.tokenizer)
