@@ -111,8 +111,12 @@ def main(cfg):
         }
     )
 
+    os.mkdir(os.path.join(cfg.dir_path.base, cfg.name, cfg.dir_path.submission))
     output.to_csv(
-        os.path.join(cfg.dir_path.base, cfg.name, cfg.dir_path.submission), index=False
+        os.path.join(
+            cfg.dir_path.base, cfg.name, cfg.dir_path.submission, "submission.csv"
+        ),
+        index=False,
     )  # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
     #### 필수!! ##############################################
     print("---- Finish! ----")

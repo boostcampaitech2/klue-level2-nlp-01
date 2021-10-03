@@ -1,5 +1,5 @@
 name: "model_train_1"
-select_model: 9 # model.yaml 참고, 해당모델 index를 가져온다
+select_model: 6 # model.yaml 참고, 해당모델 index를 가져온다
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -7,7 +7,7 @@ dir_path: # 경로설정
   test_data_path: "/opt/ml/dataset/test/test_data.csv"
   tokenizer: "tokenizer"
   model: "best_model"
-  submission: "prediction/submission.csv"
+  submission: "prediction"
 model:
   num_labels: 30
   model_list:
@@ -27,7 +27,7 @@ model:
 train_args:
   log: "logs"
   output: "results"
-  batch_size: 128
+  batch_size: 64
   learning_rate: 5e-5
   weight_decay: 0.01
   num_train_epochs: 20
