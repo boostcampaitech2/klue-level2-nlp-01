@@ -1,5 +1,4 @@
-name: "model_train_1"
-select_model: 6 # model.yaml 참고, 해당모델 index를 가져온다
+name: "test"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -9,6 +8,7 @@ dir_path: # 경로설정
   model: "best_model"
   submission: "prediction"
 model:
+  pick: 6
   num_labels: 30
   model_list:
     0: "monologg/koelectra-base-v3-discriminator"
@@ -24,6 +24,12 @@ model:
     10: "klue/roberta-large"
     11: "klue/roberta-base"
     12: "klue/roberta-small"
+tokenizer:
+  pick: 0
+  list:
+    0: "tokenized_dataset"
+    1: "tokenized_dataset_with_special_tokens"
+    2: "tokenized_dataset_with_least_special_tokens"
 train_args:
   log: "logs"
   output: "results"
@@ -42,3 +48,6 @@ dataset:
   n_splits: 18 # K_fold 시 몇개의 데이터로 나눌것인가?
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. 이때 num은 작동하지 않는다
+hyperparameters:
+  set: False
+  backend: "optuna"

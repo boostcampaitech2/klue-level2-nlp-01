@@ -8,6 +8,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
+from importlib import import_module
 import pickle as pickle
 import numpy as np
 import os
@@ -58,7 +59,7 @@ def num_to_label(label, cfg):
     return origin_label
 
 
-def load_test_dataset(dataset_dir, tokenizer):
+def load_test_dataset(dataset_dir, tokenizer, tokenizer_cfg):
     """
     test dataset을 불러온 후,
     tokenizing 합니다.
@@ -66,9 +67,10 @@ def load_test_dataset(dataset_dir, tokenizer):
     test_dataset = load_data(dataset_dir)
     test_label = list(map(int, test_dataset["label"].values))
     # tokenizing dataset
-    tokenized_test = tokenized_dataset_with_least_special_tokens(
-        test_dataset, tokenizer
+    tokenizer_module = getattr(
+        import_module("src.tokenizing"), tokenizer_cfg.list[tokenizer_cfg.pick]
     )
+    tokenized_test = tokenizer_module(test_dataset, tokenizer)
     return test_dataset["id"], tokenized_test, test_label
 
 
@@ -91,7 +93,9 @@ def main(cfg):
 
     ## load test datset
     test_dataset_dir = cfg.dir_path.test_data_path
-    test_id, test_dataset, test_label = load_test_dataset(test_dataset_dir, tokenizer)
+    test_id, test_dataset, test_label = load_test_dataset(
+        test_dataset_dir, tokenizer, cfg.tokenizer
+    )
     Re_test_dataset = RE_Dataset(test_dataset, test_label)
 
     ## predict answer

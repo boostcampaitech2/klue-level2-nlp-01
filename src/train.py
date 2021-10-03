@@ -2,6 +2,7 @@ import pickle as pickle
 import torch
 import os
 
+from importlib import import_module
 from transformers import (
     AutoTokenizer,
     AutoConfig,
@@ -56,6 +57,7 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
         # `epoch`: Evaluate every end of epoch.
         eval_steps=train_args_cfg.eval_steps,  # evaluation step.
         load_best_model_at_end=True,
+        report_to="wandb",
     )
 
 
@@ -63,7 +65,7 @@ def train(cfg):
     train_name = cfg.name
 
     # load model and tokenizer
-    MODEL_INDEX = cfg.select_model
+    MODEL_INDEX = cfg.model.pick
     tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
 
     # load dataset
@@ -73,12 +75,11 @@ def train(cfg):
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
     # tokenizing dataset
-    tokenized_train = tokenized_dataset_with_least_special_tokens(
-        train_dataset, tokenizer
+    tokenizer_module = getattr(
+        import_module("src.tokenizing"), cfg.tokenizer.list[cfg.tokenizer.pick]
     )
-    tokenized_valid = tokenized_dataset_with_least_special_tokens(
-        valid_dataset, tokenizer
-    )
+    tokenized_train = tokenizer_module(train_dataset, tokenizer)
+    tokenized_valid = tokenizer_module(valid_dataset, tokenizer)
 
     tokenizer.save_pretrained(
         os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.tokenizer)
