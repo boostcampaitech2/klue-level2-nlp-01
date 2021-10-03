@@ -4,10 +4,9 @@ import pandas as pd
 from pandas.core.frame import DataFrame
 import torch
 import numpy as np
+import hydra
+from omegaconf import DictConfig
 from sklearn.model_selection import StratifiedKFold
-
-TRAIN_DATA_PATH = "/opt/ml/dataset/train/train.csv"
-TEST_DATA_PATH = "/opt/ml/dataset/test/test_data.csv"
 
 
 class RE_Dataset(torch.utils.data.Dataset):
@@ -56,21 +55,10 @@ def load_data(dataset_dir):
     """csv 파일을 경로에 맡게 불러 옵니다."""
     pd_dataset = pd.read_csv(dataset_dir)
     dataset = preprocessing_dataset(pd_dataset)
-
     return dataset
 
 
-def load_train_data():
-    """pandas 형식의 훈련 데이터"""
-    return load_data(TRAIN_DATA_PATH)
-
-
-def load_test_data():
-    """pandas 형식의 테스트 데이터"""
-    return load_data(TEST_DATA_PATH)
-
-
-def additional_data():
+def additional_data(train_data_path):
     config = {
         "change_entity": {
             "subject_entity": "object_entity",
@@ -101,7 +89,8 @@ def additional_data():
     }
 
     # 훈련 데이터를 불러오고 subject_entity와 object_entity만 바꾼다.
-    add_data = load_train_data().rename(columns=config["change_entity"])
+    add_data = load_data(train_data_path)
+    add_data = add_data.rename(columns=config["change_entity"])
     # 추가 데이터를 만들 수 있는 라벨만 남긴다
     add_data = add_data[add_data.label.isin(config["remain_label_list"])]
     # 속성 정렬을 해준다 (정렬을 안할경우 obj와 sub의 순서가 바뀌어 보기 불편함)
@@ -111,8 +100,10 @@ def additional_data():
     return add_data
 
 
-def train_data_with_addition():
-    added_data = load_train_data().append(additional_data())
+def train_data_with_addition(train_data_path, dataset_cfg):
+    if not dataset_cfg.add_data:
+        return load_data(train_data_path)
+    added_data = load_data(train_data_path).append(additional_data(train_data_path))
     added_data["subject_entity_string"] = added_data["subject_entity"].astype(str)
     added_data["object_entity_string"] = added_data["object_entity"].astype(str)
     added_data = added_data.drop_duplicates(
@@ -122,27 +113,34 @@ def train_data_with_addition():
     return added_data
 
 
-def get_stratified_K_fold(dataset: pd.DataFrame, shuffle=False, n_splits=7, num=0):
-    assert n_splits > num, "num은 n_splits보다 작아야 합니다."
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=shuffle)
+def get_stratified_K_fold(dataset: pd.DataFrame, dataset_cfg):
+    """
+    stratified_K_fold를 구현하였습니다.
+    n_splits은 몇개로 나눌것인지를 의미합니다.
+    num은 n_splits으로 나눴을때 몇번째 데이터를 가져올지를 의미합니다.
+    shuffle은 랜덤하게 나눕니다. 이때는 num을 사용하지않고 무조건 1번째것을 가져옵니다.
+    """
+    assert dataset_cfg.n_splits > dataset_cfg.num, "num은 n_splits보다 작아야 합니다."
+    skf = StratifiedKFold(n_splits=dataset_cfg.n_splits, shuffle=dataset_cfg.shuffle)
     k_fold_data = list(skf.split(dataset, dataset["label"]))
-    if shuffle or num == 0:
+    if dataset_cfg.shuffle or dataset_cfg.num == 0:
         train_index, valid_index = k_fold_data[0][0], k_fold_data[0][1]
     else:
-        train_index, valid_index = k_fold_data[num][0], k_fold_data[num][1]
+        train_index, valid_index = (
+            k_fold_data[dataset_cfg.num][0],
+            k_fold_data[dataset_cfg.num][1],
+        )
     return dataset.iloc[train_index], dataset.iloc[valid_index]
 
 
 def tokenized_dataset(dataset, tokenizer):
     """
     tokenizer에 따라 sentence를 tokenizing 합니다.
-    [CLS]이순신@PER[SEP]장군@TITLE[SEP]이순신 장군은 조선 제일의 무신이다.
+    [CLS]이순신@PER[SEP]장군@TITLE[SEP]이순신 장군은 조선 제일의 무신이다.[SEP]
     """
     concat_entity = []
     type_set = set()  # ORG, DAT 등 등록안된 토큰 추가
-    for sub, obj, sen in zip(
-        dataset["subject_entity"], dataset["object_entity"], dataset["sentence"]
-    ):
+    for sub, obj in zip(dataset["subject_entity"], dataset["object_entity"]):
         temp = ""
         temp = (
             sub["word"] + "@" + sub["type"] + "[SEP]" + obj["word"] + "@" + obj["type"]
@@ -169,16 +167,14 @@ def tokenized_dataset_with_special_tokens(dataset, tokenizer):
     [CLS][S:PER]이순신[/S] 장군은 조선 제일의 [O:TITLE]무신[/O]이다.[SEP]
     """
     concat_entity = []
-    special_token_set = set()
+    special_token_set = set(["[/S]", "[/O]"])
 
     for sub, obj, sen in zip(
         dataset["subject_entity"], dataset["object_entity"], dataset["sentence"]
     ):
         sub_start_token, sub_end_token = f'[S:{sub["type"]}]', "[/S]"
         obj_start_token, obj_end_token = f'[O:{obj["type"]}]', "[/O]"
-        special_token_set.update(
-            [sub_start_token, sub_end_token, obj_start_token, obj_end_token]
-        )
+        special_token_set.update([sub_start_token, obj_start_token])
         add_index = [
             (sub["start_idx"], sub_start_token),
             (sub["end_idx"] + 1, sub_end_token),
@@ -207,7 +203,7 @@ def tokenized_dataset_with_least_special_tokens(dataset, tokenizer):
     """
     tokenizer에 따라 sentence를 tokenizing 합니다.
     스페셜 토큰을 추가합니다.
-    [CLS][SUB] PER@이순신 [/SUB] 장군은 조선 제일의 [OBJ]TITLE@무신[/OBJ]이다.[SEP]
+    [CLS][SUB] PER@ 이순신 [/SUB] 장군은 조선 제일의 [OBJ] TITLE@ 무신 [/OBJ] 이다.[SEP]
     """
     concat_entity = []
     addtional_token_set = set()
@@ -219,16 +215,16 @@ def tokenized_dataset_with_least_special_tokens(dataset, tokenizer):
     ):
         add_index = [
             (sub["start_idx"], sub_start_token + f" {sub['type']}@"),
-            (sub["end_idx"] + 1, sub_end_token + " "),
+            (sub["end_idx"] + 1, sub_end_token),
             (obj["start_idx"], obj_start_token + f" {obj['type']}@"),
-            (obj["end_idx"] + 1, obj_end_token + " "),
+            (obj["end_idx"] + 1, obj_end_token),
         ]
         add_index.sort(key=lambda x: x[0], reverse=True)
-        addtional_token_set.update([sub["type"], obj["type"]])
+        addtional_token_set.update([sub["type"] + "@", obj["type"] + "@"])
 
         temp = sen
         for token in add_index:
-            temp = temp[0 : token[0]] + f" {token[1]}" + temp[token[0] :]
+            temp = temp[0 : token[0]] + f" {token[1]} " + temp[token[0] :]
         concat_entity.append(temp)
     special_token = {
         "additional_special_tokens": ["[SUB]", "[/SUB]", "[OBJ]", "[/OBJ]"]
@@ -247,14 +243,4 @@ def tokenized_dataset_with_least_special_tokens(dataset, tokenizer):
 
 
 if __name__ == "__main__":
-    from transformers import AutoTokenizer
-
-    MODEL_NAME = "klue/bert-base"
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-
-    tokenized_train = tokenized_dataset_with_least_special_tokens(
-        train_data_with_addition(), tokenizer
-    )
-    k = tokenizer.convert_ids_to_tokens(tokenized_train[0].ids)
-    print(k)
-    print(len(tokenizer))
+    print(additional_data())

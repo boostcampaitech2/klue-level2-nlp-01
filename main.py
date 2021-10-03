@@ -1,0 +1,14 @@
+import hydra
+from omegaconf import DictConfig
+from src.train import train
+from src.inference import main as inference
+
+
+@hydra.main(config_path="conf", config_name="main")
+def main(cfg: DictConfig):
+    train(cfg)
+    inference(cfg)
+
+
+if __name__ == "__main__":
+    main()
