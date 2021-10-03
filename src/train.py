@@ -24,10 +24,15 @@ def label_to_num(label, cfg):
     return num_label
 
 
-def load_tokenizer(model_index, model_cfg):
+def load_tokenizer_and_model(model_index, model_cfg):
     MODEL_NAME = model_cfg.model_list[model_index]
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    return tokenizer
+    model_config = AutoConfig.from_pretrained(MODEL_NAME)
+    model_config.num_labels = model_cfg.num_labels
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME, config=model_config
+    )
+    return tokenizer, model
 
 
 def set_training_args(output_dir, log_dir, train_args_cfg):
@@ -59,7 +64,7 @@ def train(cfg):
 
     # load model and tokenizer
     MODEL_INDEX = cfg.select_model
-    tokenizer = load_tokenizer(MODEL_INDEX, cfg.model)
+    tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
 
     # load dataset
     dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
@@ -84,46 +89,30 @@ def train(cfg):
     print(device)
 
     # setting model hyperparameter
-    def model_init():
-        MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
-        model_config = AutoConfig.from_pretrained(MODEL_NAME)
-        model_config.num_labels = cfg.model.num_labels
-        model = AutoModelForSequenceClassification.from_pretrained(
-            MODEL_NAME, config=model_config
-        )
-        model.resize_token_embeddings(len(tokenizer))
-        model.parameters  # 이건 도대체 무슨역할일까?
-        model.to(device)
-        return model
+    MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
+    model_config = AutoConfig.from_pretrained(MODEL_NAME)
+    model_config.num_labels = cfg.model.num_labels
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME, config=model_config
+    )
+    model.resize_token_embeddings(len(tokenizer))
+    model.parameters  # 이건 도대체 무슨역할일까?
+    model.to(device)
 
     # Training 설정
     output_dir = os.path.join(cfg.dir_path.base, train_name, cfg.train_args.output)
     log_dir = os.path.join(cfg.dir_path.base, train_name, cfg.train_args.log)
     training_args = set_training_args(output_dir, log_dir, cfg.train_args)
     trainer = Trainer(
-        model_init=model_init,  # the instantiated 🤗 Transformers model to be trained
+        model=model,  # the instantiated 🤗 Transformers model to be trained
         args=training_args,  # training arguments, defined above
         train_dataset=RE_train_dataset,  # training dataset
         eval_dataset=RE_valid_dataset,  # evaluation dataset
         compute_metrics=compute_metrics,  # define metrics function
     )
 
-    def ray_hp_space():
-        from ray import tune
-
-        return {
-            "learning_rate": tune.loguniform(5e-6, 5e-4),
-            "num_train_epochs": tune.choice(range(1, 6)),
-            "seed": tune.choice(range(1, 42)),
-        }
-
-    trainer.hyperparameter_search(
-        direction="maximize",  # NOTE: or direction="minimize"
-        hp_space=ray_hp_space,  # NOTE: if you wanna use optuna, change it to optuna_hp_space
-        backend="ray",  # NOTE: if you wanna use optuna, remove this argument
-    )
     # train model
     trainer.train()
-    # model.save_pretrained(
-    #     os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.model)
-    # )
+    model.save_pretrained(
+        os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.model)
+    )
