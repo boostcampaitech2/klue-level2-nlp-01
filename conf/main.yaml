@@ -27,7 +27,7 @@ model:
 train_args:
   log: "logs"
   output: "results"
-  batch_size: 64
+  batch_size: 128
   learning_rate: 5e-5
   weight_decay: 0.01
   num_train_epochs: 20
@@ -39,6 +39,6 @@ train_args:
   evaluation_strategy: "steps"
 dataset:
   add_data: True # 추가 데이터 불러오기
-  n_splits: 7 # K_fold 시 몇개의 데이터로 나눌것인가?
+  n_splits: 18 # K_fold 시 몇개의 데이터로 나눌것인가?
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. 이때 num은 작동하지 않는다
