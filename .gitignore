@@ -137,7 +137,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 ._*
-*.pkl
 nohup.out
 best_model
 results
+실습
