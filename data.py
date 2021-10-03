@@ -7,13 +7,14 @@ from transformers import AutoTokenizer
 
 
 class DataModule(pl.LightningDataModule):
+
+    typed_entity_marker = ['[S:PER]', '[/S:PER]', '[S:ORG]', '[/S:ORG]',
+                           '[O:PER]', '[/O:PER]', '[O:ORG]', '[/O:ORG]',
+                           '[O:DAT]', '[/O:DAT]', '[O:LOC]', '[/O:LOC]',
+                           '[O:POH]', '[/O:POH]', '[O:NOH]', '[/O:NOH]',]
+
     def __init__(self, model_name="klue/bert-base", batch_size=128, version=2):
         super().__init__()
-
-        typed_entity_marker = ['[S:PER]', '[/S:PER]', '[S:ORG]', '[/S:ORG]',
-                               '[O:PER]', '[/O:PER]', '[O:ORG]', '[/O:ORG]',
-                               '[O:DAT]', '[/O:DAT]', '[O:LOC]', '[/O:LOC]',
-                               '[O:POH]', '[/O:POH]', '[O:NOH]', '[/O:NOH]',]
         
         self.batch_size = batch_size
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -24,7 +25,7 @@ class DataModule(pl.LightningDataModule):
         else:
             # ... sentence ...  -> ... [S:type]sub_entity[/S:type] ... [O:type]ob_entity[/O:type] ...
             self.preprocess = self.data_preprocess2
-            self.tokenizer.add_special_tokens({"additional_special_tokens": typed_entity_marker})
+            self.num_added_tokens = self.tokenizer.add_special_tokens({"additional_special_tokens": self.typed_entity_marker})
             # typed-entity-marker를 위한 special token 추가
             # model 에서 embedding layer 바꿔주어야 함.
         
@@ -42,14 +43,12 @@ class DataModule(pl.LightningDataModule):
         with open('/opt/ml/klue/dict_klue_label_mapper.pkl', 'rb') as f:
             self.label_mapper = pickle.load(f) # klue data lavel -> train.csv data label
         
-        self.train_data = self.train_data.map(self.data_preprocess2, num_proc=4, remove_columns=["subject_entity", "object_entity"])
-        self.valid_data = self.valid_data.map(self.data_preprocess2, num_proc=4, remove_columns=["subject_entity", "object_entity"])
+        self.train_data = self.train_data.map(self.preprocess, num_proc=4, remove_columns=["subject_entity", "object_entity"])
+        self.valid_data = self.valid_data.map(self.preprocess, num_proc=4, remove_columns=["subject_entity", "object_entity"])
 
     def data_preprocess1(self, example):
         example["label"] = self.label_mapper[example["label"]]
-        entity_span = example["subject_entity"]["word"] + "[SEP]" + example["object_entity"]["word"]
-        example["sentence"] = entity_span + "[SEP]" + example["sentence"]
-        return example
+        return {"entity_span": example["subject_entity"]["word"] + "[SEP]" + example["object_entity"]["word"]}
         
     def data_preprocess2(self, example):
         example["label"] = self.label_mapper[example["label"]]
@@ -64,15 +63,25 @@ class DataModule(pl.LightningDataModule):
         return example
         
     def tokenize_data(self, example):
-        return self.tokenizer(
-            # example["entity_span"],  # data_preprocess1 함수를 single sentence로 넣어도 pair sentence를 입력한 것 같은 결과가 나오도록 조정. 
-            example["sentence"], 
-            truncation=True, 
-            padding="max_length", 
-            max_length=256, 
-            add_special_tokens=True,
-            return_token_type_ids=self.return_token_type_ids,
-        )
+        if "entity_span" in example.keys():
+            return self.tokenizer(
+                example["entity_span"],
+                example["sentence"], 
+                truncation=True, 
+                padding="max_length", 
+                max_length=256, 
+                add_special_tokens=True,
+                return_token_type_ids=self.return_token_type_ids,
+            )
+        else:
+            return self.tokenizer(
+                example["sentence"], 
+                truncation=True, 
+                padding="max_length", 
+                max_length=256, 
+                add_special_tokens=True,
+                return_token_type_ids=self.return_token_type_ids,
+            )
     
     def setup(self, stage=None):
         if stage == "fit" or stage is None:
@@ -84,6 +93,7 @@ class DataModule(pl.LightningDataModule):
             self.valid_data.set_format(
                 type="torch", columns=["input_ids", "attention_mask", "token_type_ids", "label"]
             )
+            print(self.train_data[0])
 
     def train_dataloader(self): 
         return torch.utils.data.DataLoader(
@@ -107,7 +117,7 @@ class DataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
-    data_model = DataModule()
+    data_model = DataModule(version=1)
     data_model.prepare_data()
     data_model.setup()
     print(next(iter(data_model.train_dataloader()))["input_ids"].shape)
