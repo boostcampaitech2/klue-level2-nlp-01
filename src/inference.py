@@ -66,7 +66,9 @@ def load_test_dataset(dataset_dir, tokenizer):
     test_dataset = load_data(dataset_dir)
     test_label = list(map(int, test_dataset["label"].values))
     # tokenizing dataset
-    tokenized_test = tokenized_dataset_with_special_tokens(test_dataset, tokenizer)
+    tokenized_test = tokenized_dataset_with_least_special_tokens(
+        test_dataset, tokenizer
+    )
     return test_dataset["id"], tokenized_test, test_label
 
 
@@ -110,7 +112,7 @@ def main(cfg):
     )
 
     output.to_csv(
-        "./prediction/submission.csv", index=False
+        os.path.join(cfg.dir_path.base, cfg.name, cfg.dir_path.submission), index=False
     )  # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
     #### 필수!! ##############################################
     print("---- Finish! ----")
