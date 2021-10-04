@@ -4,13 +4,14 @@ dir_path: # 경로설정
   base: "/opt/ml/code/models"
   train_data_path: "/opt/ml/dataset/train/train.csv"
   test_data_path: "/opt/ml/dataset/test/test_data.csv"
+  dev_data_path: "/opt/ml/dataset/train/dev.csv" # 아직 작동안함, 추후 구현
   tokenizer: "tokenizer"
   model: "best_model"
   submission: "prediction"
 model:
   pick: 8
   num_labels: 30
-  model_list:
+  model_list: # huggingface model이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요
     0: "monologg/koelectra-base-v3-discriminator"
     1: "HanBert-54kN-torch"
     2: "kykim/bert-kor-base"
@@ -26,7 +27,7 @@ model:
     12: "klue/roberta-small"
 tokenizer:
   pick: 1
-  list:
+  list: # tokenizing.py에 함수 이름을 적어주세요. 토크나이징 추가시 목록에 함수 이름을 추가하시면 자동으로 동작합니다.
     0: "tokenized_dataset"
     1: "tokenized_dataset_with_special_tokens"
     2: "tokenized_dataset_with_least_special_tokens"
