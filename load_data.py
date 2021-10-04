@@ -45,8 +45,16 @@ def data_preprocess2(example):
     example["object_entity"] = eval(example["object_entity"])
     sub_w, sub_s, sub_e, sub_t = example["subject_entity"].values()
     ob_w, ob_s, ob_e, ob_t = example["object_entity"].values()
-    sentence = ''.join([sentence[:sub_s], f'[S:{sub_t}]', sub_w, f'[/S:{sub_t}]', sentence[sub_e+1:]])
-    sentence = ''.join([sentence[:ob_s], f'[O:{ob_t}]', ob_w, f'[/O:{ob_t}]', sentence[ob_e+1:]])
+    tokens = [
+      (sub_s, f'[S:{sub_t}]'),
+      (sub_e+1, f'[/S:{sub_t}]'),
+      (ob_s, f'[O:{ob_t}]'),
+      (ob_e+1, f'[/O:{ob_t}]'),
+    ]
+    token.sort(key=lambda x: x[0], reverse=True)
+    sentence = ''
+    for token in tokens:
+      sentence = ''.join([sentence[:token[0]], token[1], sentence[token[0]:]])
     example["sentence"] = sentence
     return example
 
