@@ -52,3 +52,14 @@ hyperparameters:
   set: True
   backend: "sigopt"
   n_trials: 20
+  dataset:
+    train:
+      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
+      add_data: True # 추가 데이터 불러오기
+      shuffle: True # K_fold로 나눌때 섞는다.
+      num: 0
+    valid:
+      n_splits: 200 # 전체데이터 / n 만큼의 데이터를 사용 (train에 사용된 데이터 제외)
+      add_data: True # 추가 데이터 불러오기
+      shuffle: True # K_fold로 나눌때 섞는다.
+      num: 0
