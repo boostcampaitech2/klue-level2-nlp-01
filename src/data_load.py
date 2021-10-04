@@ -22,7 +22,10 @@ class RE_Dataset(torch.utils.data.Dataset):
 
 
 def preprocessing_dataset(dataset):
-    """처음 불러온 csv 파일을 속성을 포함한 형태의 형태의 DataFrame으로 변경 시켜줍니다."""
+    """
+    처음 불러온 csv 파일을 속성을 포함한 형태의 DataFrame으로 변경 시켜줍니다.
+    subject_entity와 object_entity를 Dict 형태로 불러옵니다.
+    """
     import ast
 
     subject_entity = []
@@ -53,6 +56,9 @@ def load_data(dataset_dir):
 
 
 def additional_data(train_data_path):
+    """
+    entity의 속성을 이용하여 추가데이터를 제작합니다.
+    """
     config = {
         "change_entity": {
             "subject_entity": "object_entity",
@@ -95,6 +101,9 @@ def additional_data(train_data_path):
 
 
 def train_data_with_addition(train_data_path, dataset_cfg):
+    """
+    additional 데이터를 추가한 훈련데이터를 불러옵니다.
+    """
     if not dataset_cfg.add_data:
         return load_data(train_data_path)
     added_data = load_data(train_data_path).append(additional_data(train_data_path))
