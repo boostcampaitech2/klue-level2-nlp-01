@@ -1,15 +1,15 @@
-name: "funnel-kor-base_add-data"
+name: "koelectra-base-v3_dev"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
   train_data_path: "/opt/ml/dataset/train/train.csv"
   test_data_path: "/opt/ml/dataset/test/test_data.csv"
-  dev_data_path: "/opt/ml/dataset/train/dev.csv" # 아직 작동안함, 추후 구현
+  dev_data_path: "/opt/ml/dataset/train/dev.csv"
   tokenizer: "tokenizer"
   model: "best_model"
   submission: "prediction"
 model:
-  pick: 8
+  pick: 0
   num_labels: 30
   model_list: # huggingface model이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요
     0: "monologg/koelectra-base-v3-discriminator"
@@ -26,18 +26,19 @@ model:
     11: "klue/roberta-base"
     12: "klue/roberta-small"
 tokenizer:
-  pick: 1
+  pick: 2
   list: # tokenizing.py에 함수 이름을 적어주세요. 토크나이징 추가시 목록에 함수 이름을 추가하시면 자동으로 동작합니다.
     0: "tokenized_dataset"
     1: "tokenized_dataset_with_special_tokens"
-    2: "tokenized_dataset_with_least_special_tokens"
+    2: "tokenized_dataset_with_full_special_tokens"
+    3: "tokenized_dataset_with_least_special_tokens"
 train_args:
   log: "logs" # 저장할 폴더
   output: "results" # 저장할 폴더
   batch_size: 64
   learning_rate: 5e-5
   weight_decay: 0.01
-  num_train_epochs: 10
+  num_train_epochs: 15
   warmup_steps: 500
   save_total_limit: 3
   save_steps: 500
@@ -47,11 +48,12 @@ train_args:
   disable_tqdm: True # tqdm (상태바) 숨기기
 dataset:
   add_data: True # 추가 데이터 불러오기
+  dev_data: True # dev_data_path를 검증데이터로 사용, True일 경우 아래 dataset 옵션은 적용안됨
   n_splits: 7 # K_fold 시 몇개의 데이터로 나눌것인가?
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. True 일때 num은 작동하지 않는다
 hyperparameters:
-  set: False # 아직True로 하고 쓰지마세요
+  set: False # 아직 True로 쓰지마세요
   backend: "sigopt"
   n_trials: 20
   dataset:
