@@ -74,7 +74,7 @@ def load_test_dataset(dataset_dir, tokenizer, tokenizer_cfg):
     return test_dataset["id"], tokenized_test, test_label
 
 
-def inference(cfg):
+def inference_main(cfg):
     """
     주어진 dataset csv 파일과 같은 형태일 경우 inference 가능한 코드입니다.
     """
