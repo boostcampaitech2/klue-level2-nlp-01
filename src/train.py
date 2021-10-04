@@ -10,33 +10,10 @@ from transformers import (
     TrainingArguments,
 )
 
-from src.validation import compute_metrics, compute_metrics_f1
-from src.hyper_parameters import hp_space_sigopt
+from src.validation import compute_metrics
 from src.data_load import *
 from src.hyper_parameters import hyper_parameter_train
-
-
-def label_to_num(label, cfg):
-    path = os.path.join(cfg.dir_path.code, "dict_label_to_num.pkl")
-    num_label = []
-    with open(path, "rb") as f:
-        dict_label_to_num = pickle.load(f)
-    for v in label:
-        num_label.append(dict_label_to_num[v])
-
-    return num_label
-
-
-def load_tokenizer_and_model(model_index, model_cfg):
-    MODEL_NAME = model_cfg.model_list[model_index]
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    model_config = AutoConfig.from_pretrained(MODEL_NAME)
-    model_config.num_labels = model_cfg.num_labels
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME, config=model_config
-    )
-    return tokenizer, model
-
+from src.util import label_to_num
 
 # Train용 설정
 def set_training_args(output_dir, log_dir, train_args_cfg):
@@ -74,12 +51,17 @@ def model_train(cfg):
     tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
 
     # 데이터셋 불러오기
-    dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
-    train_dataset, valid_dataset = get_stratified_K_fold(dataset, cfg.dataset)
+    train_dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
+    if cfg.dataset.dev_data:
+        valid_dataset = load_data(cfg.dir_path.dev_data_path)
+    else:
+        train_dataset, valid_dataset = get_stratified_K_fold(train_dataset, cfg.dataset)
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
-    # 테이터셋 토크나이징
+    print(f"train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)}")
+
+    # 데이터셋 토크나이징
     tokenizer_module = getattr(
         import_module("src.tokenizing"), cfg.tokenizer.list[cfg.tokenizer.pick]
     )

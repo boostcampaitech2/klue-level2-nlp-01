@@ -10,9 +10,8 @@ from transformers import (
 )
 
 from src.validation import compute_metrics_f1
-from src.hyper_parameters import hp_space_sigopt
 from src.data_load import *
-from src.train import load_tokenizer_and_model, label_to_num
+from src.util import label_to_num
 
 
 # 하이퍼 파라미터는 최하순위로 구현할 예정
