@@ -44,6 +44,7 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
     # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
     return TrainingArguments(
         output_dir=output_dir,  # output directory
+        logging_dir=log_dir,  # directory for storing logs
         save_total_limit=train_args_cfg.save_total_limit,  # number of total save model.
         save_steps=train_args_cfg.save_steps,  # model saving step.
         num_train_epochs=train_args_cfg.num_train_epochs,  # total number of training epochs
@@ -52,7 +53,6 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
         per_device_eval_batch_size=train_args_cfg.batch_size,  # batch size for evaluation
         warmup_steps=train_args_cfg.warmup_steps,  # number of warmup steps for learning rate scheduler
         weight_decay=train_args_cfg.weight_decay,  # strength of weight decay
-        logging_dir=log_dir,  # directory for storing logs
         logging_steps=train_args_cfg.logging_steps,  # log saving step.
         evaluation_strategy=train_args_cfg.evaluation_strategy,  # evaluation strategy to adopt during training
         # `no`: No evaluation during training.
@@ -61,6 +61,7 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
         eval_steps=train_args_cfg.eval_steps,  # evaluation step.
         load_best_model_at_end=True,
         disable_tqdm=train_args_cfg.disable_tqdm,
+        # wandb 저장
         report_to="wandb",
     )
 
@@ -68,17 +69,17 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
 def model_train(cfg):
     train_name = cfg.name
 
-    # load model and tokenizer
+    # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
     tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
 
-    # load dataset
+    # 데이터셋 불러오기
     dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
     train_dataset, valid_dataset = get_stratified_K_fold(dataset, cfg.dataset)
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
-    # tokenizing dataset
+    # 테이터셋 토크나이징
     tokenizer_module = getattr(
         import_module("src.tokenizing"), cfg.tokenizer.list[cfg.tokenizer.pick]
     )
@@ -89,7 +90,7 @@ def model_train(cfg):
         os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.tokenizer)
     )
 
-    # make dataset for pytorch.
+    # 파이토치 데이터셋 제작
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
     RE_valid_dataset = RE_Dataset(tokenized_valid, valid_label)
 
@@ -97,7 +98,7 @@ def model_train(cfg):
 
     print(device)
 
-    # setting model hyperparameter
+    # 모델 파라미터 설정
     MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
     model_config = AutoConfig.from_pretrained(MODEL_NAME)
     model_config.num_labels = cfg.model.num_labels
@@ -122,6 +123,8 @@ def model_train(cfg):
 
     # train model
     trainer.train()
+
+    # 모델 저장
     model.save_pretrained(
         os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.model)
     )
@@ -129,6 +132,8 @@ def model_train(cfg):
 
 def train(cfg):
     if cfg.hyperparameters.set:
+        # 하이퍼파라미터 트레이닝
         hyper_parameter_train(cfg)
     else:
+        # 모델 트레이닝
         model_train(cfg)
