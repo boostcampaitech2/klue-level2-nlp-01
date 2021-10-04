@@ -40,10 +40,7 @@ def klue_re_micro_f1(preds, labels):
     no_relation_label_idx = label_list.index("no_relation")
     label_indices = list(range(len(label_list)))
     label_indices.remove(no_relation_label_idx)
-    return (
-        sklearn.metrics.f1_score(labels, preds, average="micro", labels=label_indices)
-        * 100.0
-    )
+    return f1_score(labels, preds, average="micro", labels=label_indices) * 100.0
 
 
 def klue_re_auprc(probs, labels):
