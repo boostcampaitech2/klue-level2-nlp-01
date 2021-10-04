@@ -1,7 +1,7 @@
 import hydra
 from omegaconf import DictConfig
 from src.train import train
-from src.inference import main as inference
+from src.inference import inference
 
 
 @hydra.main(config_path="conf", config_name="main")
