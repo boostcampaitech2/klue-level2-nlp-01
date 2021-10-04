@@ -83,7 +83,16 @@ def hyper_parameter_train(cfg):
 
     # load dataset
     dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
-    train_dataset, valid_dataset = get_stratified_K_fold(dataset, cfg.dataset)
+    temp_dataset, train_dataset = get_stratified_K_fold(
+        dataset, cfg.hyperparameters.dataset.train
+    )
+    valid_cfg = cfg.hyperparameters.dataset.valid
+    valid_cfg.n_splits = int(
+        valid_cfg.n_splits
+        * (cfg.hyperparameters.dataset.train.n_splits - 1)
+        / cfg.hyperparameters.dataset.train.n_splits
+    )
+    _, valid_dataset = get_stratified_K_fold(temp_dataset, valid_cfg)
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
@@ -130,8 +139,8 @@ def hyper_parameter_train(cfg):
     trainer.hyperparameter_search(
         direction="maximize",
         backend=cfg.hyperparameters.backend,
-        hp_space=hp_space_sigopt,
-        n_trials=cfg.hyperparameters.n_trials,
+        # hp_space=hp_space_sigopt,
+        # n_trials=cfg.hyperparameters.n_trials,
     )
 
 
