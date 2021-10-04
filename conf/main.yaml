@@ -8,7 +8,7 @@ dir_path: # 경로설정
   model: "best_model"
   submission: "prediction"
 model:
-  pick: 6
+  pick: 8
   num_labels: 30
   model_list:
     0: "monologg/koelectra-base-v3-discriminator"
@@ -25,7 +25,7 @@ model:
     11: "klue/roberta-base"
     12: "klue/roberta-small"
 tokenizer:
-  pick: 0
+  pick: 2
   list:
     0: "tokenized_dataset"
     1: "tokenized_dataset_with_special_tokens"
@@ -49,5 +49,6 @@ dataset:
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. 이때 num은 작동하지 않는다
 hyperparameters:
-  set: False
-  backend: "optuna"
+  set: True
+  backend: "sigopt"
+  n_trials: 20
