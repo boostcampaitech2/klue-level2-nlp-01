@@ -50,7 +50,7 @@ dataset:
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. True 일때 num은 작동하지 않는다
 hyperparameters:
-  set: False
+  set: False # 아직True로 하고 쓰지마세요
   backend: "sigopt"
   n_trials: 20
   dataset:
