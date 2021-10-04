@@ -28,8 +28,8 @@ def tokenized_dataset(dataset, tokenizer):
 def tokenized_dataset_with_special_tokens(dataset, tokenizer):
     """
     tokenizer에 따라 sentence를 tokenizing 합니다.
-    스페셜 토큰을 추가합니다.
-    [CLS][S:PER]이순신[/S] 장군은 조선 제일의 [O:TITLE]무신[/O]이다.[SEP]
+    스페셜 토큰을 추가합니다. (꽤 많음..)
+    [CLS] [S:PER] 이순신 [/S] 장군은 조선 제일의  [O:TITLE] 무신 [/O] 이다.[SEP]
     """
     concat_entity = []
     special_token_set = set(["[/S]", "[/O]"])
@@ -67,8 +67,8 @@ def tokenized_dataset_with_special_tokens(dataset, tokenizer):
 def tokenized_dataset_with_least_special_tokens(dataset, tokenizer):
     """
     tokenizer에 따라 sentence를 tokenizing 합니다.
-    스페셜 토큰을 추가합니다.
-    [CLS][SUB] PER@ 이순신 [/SUB] 장군은 조선 제일의 [OBJ] TITLE@ 무신 [/OBJ] 이다.[SEP]
+    스페셜 토큰을 추가합니다. ([SUB],[/SUB],[OBJ],[/OBJ] 네 가지)
+    [CLS] [SUB] PER @ 이순신 [/SUB] 장군은 조선 제일의 [OBJ] TITLE @ 무신 [/OBJ] 이다.[SEP]
     """
     concat_entity = []
     addtional_token_set = set()
