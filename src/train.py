@@ -45,23 +45,29 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
 
 def model_train(cfg):
     train_name = cfg.name
-
+    print(f"\n\n *** {train_name} START !! ***\n\n")
     # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
+    print(f"\n\n Target model: {cfg.model.model_list[MODEL_INDEX]}\n\n")
     tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
 
     # 데이터셋 불러오기
-    train_dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
+    train_dataset = train_data_with_addition(
+        cfg.dir_path.train_data_path, cfg.dataset.add_data
+    )
     if cfg.dataset.dev_data:
-        valid_dataset = load_data(cfg.dir_path.dev_data_path)
+        valid_dataset = train_data_with_addition(
+            cfg.dir_path.dev_data_path, cfg.dataset.add_dev_data
+        )
     else:
         train_dataset, valid_dataset = get_stratified_K_fold(train_dataset, cfg.dataset)
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
-    print(f"train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)}")
+    print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")
 
     # 데이터셋 토크나이징
+    print(f"\n\n tokenizer_module: {cfg.tokenizer.list[cfg.tokenizer.pick]}\n\n")
     tokenizer_module = getattr(
         import_module("src.tokenizing"), cfg.tokenizer.list[cfg.tokenizer.pick]
     )
