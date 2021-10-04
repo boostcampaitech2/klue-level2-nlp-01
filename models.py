@@ -84,7 +84,7 @@ class TokenClassificationModel(nn.Module):
         entity_token_logits = entity_token_logits[:, ::2, :].contiguous().view(batch_size, -1) # batch, hidden_size * 2
         
         logits = self.token_classifier(entity_token_logits)  # batch, num_labels
-        loss = F.cross_entropy(logits, labels, ignore_index=0)
+        loss = F.cross_entropy(logits, labels, ignore_index=self.model.config.pad_token_id)
 
         return SequenceClassifierOutput(
             loss=loss,
@@ -135,10 +135,12 @@ class TokenClassificationModel(nn.Module):
 # RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
 
-# #%%
-# from transformers import BertForTokenClassification
+#%%
+from transformers import BertForTokenClassification
 
-# # model = SequenceClassificationModel(MODEL_NAME)
-# model = TokenClassificationModel(MODEL_NAME)
+MODEL_NAME = "klue/roberta-base"
+
+# model = SequenceClassificationModel(MODEL_NAME)
+model = TokenClassificationModel(MODEL_NAME)
 
 # outputs = model.forward(**RE_train_dataset[3:8])
