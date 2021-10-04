@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 import torch
 from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification, Trainer, TrainingArguments
 import transformers
@@ -6,16 +8,16 @@ from load_data import *
 from models import *
 from utils import *
 
-def train():
+def train(args):
     # load model and tokenizer
     # MODEL_NAME = "bert-base-uncased"
-    MODEL_NAME = "klue/bert-base"
+    MODEL_NAME = args.model_name
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     num_added_tokens = tokenizer.add_special_tokens({"additional_special_tokens": TokenClassificationModel.typed_entity_marker})
     
     # load dataset
-    train_dataset = load_data("../dataset/train/train.csv", data_preprocess1)
-    dev_dataset = load_data("../dataset/train/dev.csv", data_preprocess1) # validation용 데이터는 따로 만드셔야 합니다.
+    train_dataset = load_data("../dataset/train/train.csv", version=args.version)
+    dev_dataset = load_data("../dataset/train/dev.csv", version=args.version) # validation용 데이터는 따로 만드셔야 합니다.
 
     train_label = train_dataset['label']
     dev_label = dev_dataset['label']
@@ -43,8 +45,8 @@ def train():
 
     print(device)
 
-    model = SequenceClassificationModel(MODEL_NAME)
-    # model = TokenClassificationModel(MODEL_NAME)
+    # model = SequenceClassificationModel(MODEL_NAME)
+    model = TokenClassificationModel(MODEL_NAME)
     model.to(device)
     
     param_groups = {"no_decay": [], "decay": []}
@@ -95,8 +97,16 @@ def train():
     trainer.train()
     model.save_pretrained('./best_model')
 
-def main():
-    train()
+def main(args):
+    train(args)
 
 if __name__ == '__main__':
-    main()
+    
+    parser = ArgumentParser()
+    parser.add_argument("--model_name", type=str, default="klue/bert-base")
+    parser.add_argument("--version", type=int, help="1: origin , 2: type-entity-marker", default=2)
+    # parser.add_argument("--batch_size", type=int, default=128)
+    # parser.add_argument("--lr", type=float, default=5e-5)
+    args = parser.parse_args()
+    
+    main(args)
