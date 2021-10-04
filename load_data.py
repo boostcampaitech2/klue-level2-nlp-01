@@ -52,7 +52,6 @@ def data_preprocess2(example):
       (ob_e+1, f'[/O:{ob_t}]'),
     ]
     tokens.sort(key=lambda x: x[0], reverse=True)
-    sentence = ''
     for token in tokens:
       sentence = ''.join([sentence[:token[0]], token[1], sentence[token[0]:]])
     example["sentence"] = sentence
