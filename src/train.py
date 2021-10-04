@@ -139,8 +139,8 @@ def hyper_parameter_train(cfg):
     trainer.hyperparameter_search(
         direction="maximize",
         backend=cfg.hyperparameters.backend,
-        # hp_space=hp_space_sigopt,
-        # n_trials=cfg.hyperparameters.n_trials,
+        hp_space=hp_space_sigopt,
+        n_trials=cfg.hyperparameters.n_trials,
     )
 
 
