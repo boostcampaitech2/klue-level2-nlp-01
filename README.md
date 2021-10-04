@@ -18,3 +18,4 @@ klue-level2-nlp-01 created by GitHub Classroom
 - 사용자 정의 모델 추가
 - 사용자 정의 토크나이징 추가
 - EDA 추가
+- dev 데이터셋 연동시키기
