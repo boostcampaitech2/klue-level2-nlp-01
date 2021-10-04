@@ -1,6 +1,7 @@
 import pickle as pickle
 import torch
 import os
+import copy
 
 from importlib import import_module
 from transformers import (
@@ -10,7 +11,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from src.validation import compute_metrics
+from src.validation import compute_metrics, compute_metrics_f1
+from src.hyper_parameters import hp_space_sigopt
 from src.data_load import *
 
 
@@ -34,6 +36,17 @@ def load_tokenizer_and_model(model_index, model_cfg):
         MODEL_NAME, config=model_config
     )
     return tokenizer, model
+
+
+def set_hp_training_args(output_dir, train_args_cfg):
+    return TrainingArguments(
+        output_dir=output_dir,
+        evaluation_strategy=train_args_cfg.evaluation_strategy,  # evaluation strategy to adopt during training
+        eval_steps=train_args_cfg.eval_steps,  # evaluation step.
+        disable_tqdm=True,
+        load_best_model_at_end=True,
+        report_to="wandb",
+    )
 
 
 def set_training_args(output_dir, log_dir, train_args_cfg):
@@ -61,7 +74,68 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
     )
 
 
-def train(cfg):
+def hyper_parameter_train(cfg):
+    train_name = cfg.name
+
+    # load model and tokenizer
+    MODEL_INDEX = cfg.model.pick
+    tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
+
+    # load dataset
+    dataset = train_data_with_addition(cfg.dir_path.train_data_path, cfg.dataset)
+    train_dataset, valid_dataset = get_stratified_K_fold(dataset, cfg.dataset)
+    train_label = label_to_num(train_dataset["label"].values, cfg)
+    valid_label = label_to_num(valid_dataset["label"].values, cfg)
+
+    # tokenizing dataset
+    tokenizer_module = getattr(
+        import_module("src.tokenizing"), cfg.tokenizer.list[cfg.tokenizer.pick]
+    )
+    tokenized_train = tokenizer_module(train_dataset, tokenizer)
+    tokenized_valid = tokenizer_module(valid_dataset, tokenizer)
+
+    # make dataset for pytorch.
+    RE_train_dataset = RE_Dataset(tokenized_train, train_label)
+    RE_valid_dataset = RE_Dataset(tokenized_valid, valid_label)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    print(device)
+
+    # setting model hyperparameter
+    MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
+    model_config = AutoConfig.from_pretrained(MODEL_NAME)
+    model_config.num_labels = cfg.model.num_labels
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME, config=model_config
+    )
+    model.resize_token_embeddings(len(tokenizer))
+
+    def model_init():
+        return copy.deepcopy(model)
+
+    output_dir = os.path.join(cfg.dir_path.base, train_name, "hp_optimize")
+
+    # Training 설정
+    training_args = set_hp_training_args(output_dir, cfg.train_args)
+    trainer = Trainer(
+        model_init=model_init,  # the instantiated 🤗 Transformers model to be trained
+        args=training_args,  # training arguments, defined above
+        train_dataset=RE_train_dataset,  # training dataset
+        eval_dataset=RE_valid_dataset,  # evaluation dataset
+        compute_metrics=compute_metrics_f1,  # define metrics function
+    )
+
+    # hp train model
+    trainer.hyperparameter_search(
+        direction="maximize",
+        backend=cfg.hyperparameters.backend,
+        hp_space=hp_space_sigopt,
+        n_trials=cfg.hyperparameters.n_trials,
+    )
+
+
+def model_train(cfg):
     train_name = cfg.name
 
     # load model and tokenizer
@@ -121,3 +195,10 @@ def train(cfg):
     model.save_pretrained(
         os.path.join(cfg.dir_path.base, train_name, cfg.dir_path.model)
     )
+
+
+def train(cfg):
+    if cfg.hyperparameters.set:
+        hyper_parameter_train(cfg)
+    else:
+        model_train(cfg)
