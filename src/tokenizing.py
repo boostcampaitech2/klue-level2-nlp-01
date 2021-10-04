@@ -28,7 +28,7 @@ def tokenized_dataset(dataset, tokenizer):
 def tokenized_dataset_with_special_tokens(dataset, tokenizer):
     """
     tokenizer에 따라 sentence를 tokenizing 합니다.
-    스페셜 토큰을 추가합니다. (꽤 많음..)
+    스페셜 토큰을 추가합니다.
     [CLS] [S:PER] 이순신 [/S] 장군은 조선 제일의  [O:TITLE] 무신 [/O] 이다.[SEP]
     """
     concat_entity = []
@@ -40,6 +40,47 @@ def tokenized_dataset_with_special_tokens(dataset, tokenizer):
         sub_start_token, sub_end_token = f'[S:{sub["type"]}]', "[/S]"
         obj_start_token, obj_end_token = f'[O:{obj["type"]}]', "[/O]"
         special_token_set.update([sub_start_token, obj_start_token])
+        add_index = [
+            (sub["start_idx"], sub_start_token),
+            (sub["end_idx"] + 1, sub_end_token),
+            (obj["start_idx"], obj_start_token),
+            (obj["end_idx"] + 1, obj_end_token),
+        ]
+        add_index.sort(key=lambda x: x[0], reverse=True)
+        temp = sen
+        for token in add_index:
+            temp = temp[0 : token[0]] + f" {token[1]} " + temp[token[0] :]
+        concat_entity.append(temp)
+    special_token = {"additional_special_tokens": list(special_token_set)}
+    tokenizer.add_special_tokens(special_token)
+    tokenized_sentences = tokenizer(
+        concat_entity,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=256,
+        add_special_tokens=True,
+    )
+    return tokenized_sentences
+
+
+def tokenized_dataset_with_full_special_tokens(dataset, tokenizer):
+    """
+    tokenizer에 따라 sentence를 tokenizing 합니다.
+    스페셜 토큰을 추가합니다. (꽤 많음..)
+    [CLS] [SUB:PER] 이순신 [/SUB:PER] 장군은 조선 제일의  [OBJ:TITLE] 무신 [/OBJ:TITLE] 이다.[SEP]
+    """
+    concat_entity = []
+    special_token_set = set()
+
+    for sub, obj, sen in zip(
+        dataset["subject_entity"], dataset["object_entity"], dataset["sentence"]
+    ):
+        sub_start_token, sub_end_token = f'[SUB:{sub["type"]}]', f'[/SUB:{sub["type"]}]'
+        obj_start_token, obj_end_token = f'[OBJ:{obj["type"]}]', f'[/OBJ:{obj["type"]}]'
+        special_token_set.update(
+            [sub_start_token, sub_end_token, obj_start_token, obj_end_token]
+        )
         add_index = [
             (sub["start_idx"], sub_start_token),
             (sub["end_idx"] + 1, sub_end_token),
@@ -89,7 +130,7 @@ def tokenized_dataset_with_least_special_tokens(dataset, tokenizer):
 
         temp = sen
         for token in add_index:
-            temp = temp[0 : token[0]] + f" {token[1]} " + temp[token[0] :]
+            temp = temp[: token[0]] + f" {token[1]} " + temp[token[0] :]
         concat_entity.append(temp)
     special_token = {
         "additional_special_tokens": ["[SUB]", "[/SUB]", "[OBJ]", "[/OBJ]"]
