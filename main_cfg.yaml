@@ -1,0 +1,81 @@
+name: "koelectra-base-v3_dev"
+dir_path: # 경로설정
+  code: "/opt/ml/code/src"
+  base: "/opt/ml/code/models"
+  train_data_path: "/opt/ml/dataset/train/train.csv"
+  test_data_path: "/opt/ml/dataset/test/test_data.csv"
+  dev_data_path: "/opt/ml/dataset/train/dev.csv"
+  tokenizer: "tokenizer"
+  model: "best_model"
+  submission: "prediction"
+model:
+  pick: 0
+  num_labels: 30
+  model_list:
+    # huggingface model 이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요.
+    # Custom_model 사용시 pretrained 토크나이저 번호를 입력해주세요.
+    0: "monologg/koelectra-base-v3-discriminator"
+    1: "HanBert-54kN-torch"
+    2: "kykim/bert-kor-base"
+    3: "monologg/koelectra-small-v3-discriminator"
+    4: "monologg/kobert"
+    5: "hyunwoongko/kobart"
+    6: "kykim/electra-kor-base"
+    7: "kykim/albert-kor-base"
+    8: "kykim/funnel-kor-base"
+    9: "klue/bert-base"
+    10: "klue/roberta-large"
+    11: "klue/roberta-base"
+    12: "klue/roberta-small"
+  custom_model: False # 커스텀모델 사용시
+  custom_model_args:
+    pick: 0
+    list:
+      0: "TokenClassificationModel"
+tokenizer:
+  pick: 2
+  list: # tokenizing.py에 함수 이름을 적어주세요. 토크나이징 추가시 목록에 함수 이름을 추가하시면 자동으로 동작합니다.
+    0: "tokenized_dataset"
+    1: "tokenized_dataset_with_special_tokens"
+    2: "tokenized_dataset_with_full_special_tokens"
+    3: "tokenized_dataset_with_least_special_tokens"
+    4: "data_preprocess2"
+train_args:
+  log: "logs" # 저장할 폴더
+  output: "results" # 저장할 폴더
+  batch_size: 64
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  num_train_epochs: 40
+  warmup_steps: 500
+  fp16: True
+  dataloader_pin_memory: True
+  gradient_accumulation_steps: 4
+  save_total_limit: 3
+  save_steps: 500
+  logging_steps: 100
+  eval_steps: 500
+  evaluation_strategy: "steps"
+  disable_tqdm: True # tqdm (상태바) 숨기기
+dataset:
+  add_data: True # 추가 데이터 불러오기
+  dev_data: True # dev_data_path를 검증데이터로 사용, True일 경우 아래 dataset 옵션은 적용안됨
+  add_dev_data: True # dev_data도 추가 데이터 함수를 적용할지 결정합니다.
+  n_splits: 7 # K_fold 시 몇개의 데이터로 나눌것인가?
+  num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
+  shuffle: False # K_fold로 나눌때 섞는다. True 일때 num은 작동하지 않는다
+hyperparameters:
+  set: False # 아직 True로 쓰지마세요
+  backend: "sigopt"
+  n_trials: 20
+  dataset:
+    train:
+      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
+      add_data: True # 추가 데이터 불러오기
+      shuffle: True # K_fold로 나눌때 섞는다.
+      num: 0
+    valid:
+      n_splits: 200 # 전체데이터 / n 만큼의 데이터를 사용 (train에 사용된 데이터 제외)
+      add_data: True # 추가 데이터 불러오기
+      shuffle: True # K_fold로 나눌때 섞는다.
+      num: 0
