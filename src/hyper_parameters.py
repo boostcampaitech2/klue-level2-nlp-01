@@ -14,11 +14,6 @@ def hp_space_sigopt(_):
             "name": "per_device_train_batch_size",
             "type": "categorical",
         },
-        {
-            "categorical_values": ["4", "8", "16", "32", "64"],
-            "name": "per_device_eval_batch_size",
-            "type": "categorical",
-        },
         {"bounds": {"min": 100, "max": 1000}, "name": "warmup_steps", "type": "int"},
         {
             "bounds": {"min": 0.001, "max": 0.1},
