@@ -1,17 +1,28 @@
-from ray import tune
-
-
-def ray_hp_space():
-    return {
-        "learning_rate": tune.loguniform(5e-6, 5e-4),
-        "num_train_epochs": tune.choice(range(1, 6)),
-        "seed": tune.choice(range(1, 42)),
-    }
-
-
-def apply_hyper_parameters(trainer):
-    trainer.hyperparameter_search(
-        direction="maximize",  # NOTE: or direction="minimize"
-        hp_space=ray_hp_space,  # NOTE: if you wanna use optuna, change it to optuna_hp_space
-        backend="ray",  # NOTE: if you wanna use optuna, remove this argument
-    )
+# 클로저 쓰자
+def hp_space_sigopt(_):
+    return [
+        {
+            "bounds": {"min": 5e-6, "max": 1e-4},
+            "name": "learning_rate",
+            "type": "double",
+            "transformamtion": "log",
+        },
+        {"bounds": {"min": 1, "max": 10}, "name": "num_train_epochs", "type": "int"},
+        {"bounds": {"min": 1, "max": 50}, "name": "seed", "type": "int"},
+        {
+            "categorical_values": ["4", "8", "16", "32", "64"],
+            "name": "per_device_train_batch_size",
+            "type": "categorical",
+        },
+        {
+            "categorical_values": ["4", "8", "16", "32", "64"],
+            "name": "per_device_eval_batch_size",
+            "type": "categorical",
+        },
+        {"bounds": {"min": 100, "max": 1000}, "name": "warmup_steps", "type": "int"},
+        {
+            "bounds": {"min": 0.001, "max": 0.1},
+            "name": "weight_decay",
+            "type": "double",
+        },
+    ]
