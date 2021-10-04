@@ -32,6 +32,9 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
         weight_decay=train_args_cfg.weight_decay,  # strength of weight decay
         logging_steps=train_args_cfg.logging_steps,  # log saving step.
         evaluation_strategy=train_args_cfg.evaluation_strategy,  # evaluation strategy to adopt during training
+        fp16=train_args_cfg.fp16,
+        dataloader_pin_memory=train_args_cfg.dataloader_pin_memory,
+        gradient_accumulation_steps=train_args_cfg.gradient_accumulation_steps,
         # `no`: No evaluation during training.
         # `steps`: Evaluate every `eval_steps`.
         # `epoch`: Evaluate every end of epoch.
@@ -87,14 +90,20 @@ def model_train(cfg):
     print(device)
 
     # 모델 파라미터 설정
-    MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
-    model_config = AutoConfig.from_pretrained(MODEL_NAME)
-    model_config.num_labels = cfg.model.num_labels
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME, config=model_config
-    )
+    if cfg.model.custom_model:
+        model = getattr(
+            import_module("src.custom_models"),
+            cfg.model.custom_model_args.list[cfg.model.custom_model_args.pick],
+        )
+    else:
+        MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
+        model_config = AutoConfig.from_pretrained(MODEL_NAME)
+        model_config.num_labels = cfg.model.num_labels
+        model = AutoModelForSequenceClassification.from_pretrained(
+            MODEL_NAME, config=model_config
+        )
     model.resize_token_embeddings(len(tokenizer))
-    model.parameters  # 이건 도대체 무슨역할일까?
+    # model.parameters  # 이건 도대체 무슨역할일까?
     model.to(device)
 
     # Training 설정
