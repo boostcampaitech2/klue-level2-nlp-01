@@ -5,7 +5,7 @@ klue-level2-nlp-01 created by GitHub Classroom
 # 사용법
 
 - main_cfg.yaml 을 설정한다.
-- 훈련시킨다
+- main.py 로 훈련시킨다.
 - ~~끗~~
 
 # 해야할것
