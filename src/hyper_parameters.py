@@ -7,7 +7,7 @@ def hp_space_sigopt(_):
             "type": "double",
             "transformamtion": "log",
         },
-        {"bounds": {"min": 1, "max": 10}, "name": "num_train_epochs", "type": "int"},
+        {"bounds": {"min": 1, "max": 6}, "name": "num_train_epochs", "type": "int"},
         {"bounds": {"min": 1, "max": 50}, "name": "seed", "type": "int"},
         {
             "categorical_values": ["4", "8", "16", "32", "64"],
