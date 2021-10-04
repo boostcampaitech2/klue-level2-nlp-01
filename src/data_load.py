@@ -112,11 +112,11 @@ def additional_data(train_data_path):
     return add_data
 
 
-def train_data_with_addition(train_data_path, dataset_cfg):
+def train_data_with_addition(train_data_path, is_add_data):
     """
     additional 데이터를 추가한 훈련데이터를 불러옵니다.
     """
-    if not dataset_cfg.add_data:
+    if not is_add_data:
         return load_data(train_data_path)
     added_data = load_data(train_data_path).append(additional_data(train_data_path))
     added_data["subject_entity_string"] = added_data["subject_entity"].astype(str)
