@@ -1,6 +1,7 @@
 import pandas as pd
 import torch
 from sklearn.model_selection import StratifiedKFold
+from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification
 
 
 class RE_Dataset(torch.utils.data.Dataset):
@@ -19,6 +20,17 @@ class RE_Dataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.labels)
+
+
+def load_tokenizer_and_model(model_index, model_cfg):
+    MODEL_NAME = model_cfg.model_list[model_index]
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model_config = AutoConfig.from_pretrained(MODEL_NAME)
+    model_config.num_labels = model_cfg.num_labels
+    model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME, config=model_config
+    )
+    return tokenizer, model
 
 
 def preprocessing_dataset(dataset):
