@@ -18,8 +18,3 @@ def AEDA_generator(sentence, aeda_cfg):
     )
     print(result)
     return result
-
-
-aeda = AEDA(
-    morpheme_analyzer="Okt", punc_ratio=0.3, punctuations=[".", ",", "!", "?", ";", ":"]
-)
