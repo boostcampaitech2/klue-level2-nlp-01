@@ -55,9 +55,12 @@ EDA_AEDA:
     set: True # AEDA 설정
     tqdm: True # True -> tqdm(상태바)표시
     morpheme_analyzer: "Okt" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
-    punc_ratio: 0.2 # 0.3 이상이 넘어가면 지옥을 보여드립니다. (훈련시간보다 AEDA 시간이 더걸려요)
+    # punc_ratio: 0.2 # 0.3 이상이 넘어가면 지옥을 보여드립니다. (훈련시간보다 AEDA 시간이 더걸려요) => 아래 generator에서 사용하세요
     punctuations: [".", ",", "!", "?", ";", ":"] # 기본값 [".", ",", "!", "?", ";", ":"]
     generator:
+      punc_ratio: # 같은 값을 사용하면 그 값 그대로 내보냅니다.
+        min: 0.3
+        max: 0.9
       repetition: 2 # 몇개의 AEDA 문장을 만들것인가? AEDA후 훈련데이터셋 갯수 = 훈련데이터셋 * (1 + repetition)
 train_args:
   log: "logs" # 저장할 폴더
@@ -65,7 +68,7 @@ train_args:
   batch_size: 64
   learning_rate: 5e-5
   weight_decay: 0.01
-  num_train_epochs: 40
+  num_train_epochs: 15
   warmup_steps: 500
   fp16: True
   dataloader_pin_memory: True # default = True

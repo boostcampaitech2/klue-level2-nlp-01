@@ -1,11 +1,60 @@
+import random
+
 from koeda import AEDA
 from tqdm import tqdm
 
 
+SPACE_TOKEN = "\u241F"
+
+
+def replace_space(text: str) -> str:
+    return text.replace(" ", SPACE_TOKEN)
+
+
+def revert_space(text: list) -> str:
+    clean = " ".join("".join(text).replace(SPACE_TOKEN, " ").split()).strip()
+    return clean
+
+
+class myAEDA(AEDA):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _aeda(self, data: str, p: float) -> str:
+        if p is None:
+            p = self.ratio
+
+        split_words = self.morpheme_analyzer.morphs(replace_space(data))
+        words = self.morpheme_analyzer.morphs(data)
+
+        new_words = []
+        q = random.randint(1, int(p * len(words) + 1))
+        qs_list = [
+            index
+            for index in range(len(split_words))
+            if split_words[index] != SPACE_TOKEN
+        ]
+        qs = random.sample(qs_list, q)
+
+        for j, word in enumerate(split_words):
+            if j in qs:
+                new_words.append(SPACE_TOKEN)
+                new_words.append(
+                    self.punctuations[random.randint(0, len(self.punctuations) - 1)]
+                )
+                new_words.append(SPACE_TOKEN)
+                new_words.append(word)
+            else:
+                new_words.append(word)
+
+        augmented_sentences = revert_space(new_words)
+
+        return augmented_sentences
+
+
 def AEDA_init(aeda_cfg):
-    return AEDA(
+    return myAEDA(
         morpheme_analyzer=aeda_cfg.morpheme_analyzer,
-        punc_ratio=aeda_cfg.punc_ratio,
         punctuations=aeda_cfg.punctuations,
     )
 
@@ -17,10 +66,14 @@ def AEDA_generator(sentence, aeda_cfg):
         sentence_loop = tqdm(sentence, desc="AEDA Process! ")
     else:
         sentence_loop = sentence
-    for i in sentence_loop:
-        result = aeda(i, repetition=aeda_cfg.generator.repetition)
-        if aeda_cfg.generator.repetition == 1:
+    for sentence in sentence_loop:
+        for _ in range(aeda_cfg.generator.repetition):
+            result = aeda(
+                sentence,
+                p=random.uniform(
+                    aeda_cfg.generator.punc_ratio.min, aeda_cfg.generator.punc_ratio.max
+                ),
+            )
             aeda_sentences.append(result)
-        else:
-            aeda_sentences.extend(result)
+
     return aeda_sentences
