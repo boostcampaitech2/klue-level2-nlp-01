@@ -71,7 +71,7 @@ def dataset_preprocess_base(sub, obj, sen):
         + obj["word"]
         + "@"
         + obj["type"]
-        + "@@@@@"
+        + " @@@@@ "
     )
     add_tokens.extend([sub["type"], obj["type"]])
     sentence = pre_sen + sen
@@ -94,7 +94,7 @@ def dataset_preprocess_base_for_AEDA(sub, obj, sen):
         + obj["word"]
         + "@"
         + obj["type"]
-        + "@@@@@"
+        + " @@@@@ "
     )
     add_tokens.extend([sub["type"], obj["type"]])
     sentence = pre_sen + sen
