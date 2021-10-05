@@ -8,3 +8,4 @@ scikit-learn==0.24.2=
 torch==1.7.1
 transformers==4.10.0
 wandb==0.12.3
+koeda==0.0.4
