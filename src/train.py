@@ -85,7 +85,7 @@ def model_train(cfg):
     train_dataset, add_tokens, special_tokens = preprocess_func(
         train_dataset, cfg.EDA_AEDA.AEDA.set, cfg.EDA_AEDA.AEDA
     )
-    valid_dataset = preprocess_func(valid_dataset)
+    valid_dataset, _, _ = preprocess_func(valid_dataset)
 
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
