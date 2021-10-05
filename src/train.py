@@ -85,6 +85,8 @@ def model_train(cfg):
     train_dataset, add_tokens, special_tokens = preprocess_func(
         train_dataset, cfg.EDA_AEDA.AEDA.set, cfg.EDA_AEDA.AEDA
     )
+    train_dataset = train_dataset.sample(frac=1)  # 훈련데이터 뒤섞기
+
     valid_dataset, _, _ = preprocess_func(valid_dataset)
 
     train_label = label_to_num(train_dataset["label"].values, cfg)
@@ -131,7 +133,7 @@ def model_train(cfg):
             MODEL_NAME, config=model_config
         )
         model.resize_token_embeddings(len(tokenizer))
-    # model.parameters  # 이건 도대체 무슨역할일까?
+    # model.parameters  # <== 이건 도대체 무슨역할일까?
     model.to(device)
 
     # Training 설정
@@ -141,6 +143,7 @@ def model_train(cfg):
     trainer = Trainer(
         model=model,  # the instantiated 🤗 Transformers model to be trained
         args=training_args,  # training arguments, defined above
+        tokenizer=tokenizer,  # 토크나이저 추가. 안해도 되려나
         train_dataset=RE_train_dataset,  # training dataset
         eval_dataset=RE_valid_dataset,  # evaluation dataset
         compute_metrics=compute_metrics,  # define metrics function
