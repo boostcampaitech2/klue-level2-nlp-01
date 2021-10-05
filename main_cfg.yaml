@@ -1,4 +1,4 @@
-name: "klue_bert_basic_test"
+name: "klue_bert_base_with_dev"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -40,7 +40,7 @@ dataset:
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. True 일때 num은 작동하지 않는다
 preprocess: # [함수이름, 2문장으로 나누는가? (베이스라인 전처리 방식)]
-  pick: 2
+  pick: 5
   list:
     0: ["dataset_preprocess_base", True]
     1: ["dataset_preprocess_with_special_tokens", False]
@@ -52,8 +52,8 @@ preprocess: # [함수이름, 2문장으로 나누는가? (베이스라인 전처
 EDA_AEDA:
   set: False
   AEDA:
-    set: True
-    tqdm: True
+    set: True # AEDA 설정
+    tqdm: True # True -> tqdm(상태바)표시
     morpheme_analyzer: "Okt" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
     punc_ratio: 0.2 # 0.3 이상이 넘어가면 지옥을 보여드립니다. (훈련시간보다 AEDA 시간이 더걸려요)
     punctuations: [".", ",", "!", "?", ";", ":"] # 기본값 [".", ",", "!", "?", ";", ":"]
