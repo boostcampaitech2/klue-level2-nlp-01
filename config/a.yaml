@@ -1,5 +1,4 @@
-name: "klue_bert_base_with_dev"
-multi_config: False
+name: "klue_bert_base_hp"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -79,9 +78,9 @@ train_args:
   evaluation_strategy: "steps"
   disable_tqdm: True # tqdm (상태바) 숨기기
 hyperparameters:
-  set: False # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
+  set: True # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
   backend: "optuna"
-  n_trials: 20
+  n_trials: 10
   dataset:
     train:
       n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
