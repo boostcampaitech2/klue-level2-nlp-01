@@ -140,6 +140,7 @@ cython_debug/
 nohup.out
 best_model
 results
-실습
 models
+
+# hydra output
 outputs
