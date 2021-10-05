@@ -9,7 +9,7 @@ dir_path: # 경로설정
   model: "best_model"
   submission: "prediction"
 model:
-  pick: 9
+  pick: 8
   num_labels: 30
   model_list:
     # huggingface model 이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요.
@@ -52,7 +52,7 @@ preprocess: # [함수이름, 2문장으로 나누는가? (베이스라인 전처
 EDA_AEDA:
   set: False
   AEDA:
-    set: True # AEDA 설정
+    set: False # AEDA 설정
     tqdm: True # True -> tqdm(상태바)표시
     morpheme_analyzer: "Okt" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
     # punc_ratio: 0.2 # 0.3 이상이 넘어가면 지옥을 보여드립니다. (훈련시간보다 AEDA 시간이 더걸려요) => 아래 generator에서 사용하세요
@@ -64,9 +64,9 @@ train_args:
   log: "logs" # 저장할 폴더
   output: "results" # 저장할 폴더
   batch_size: 64
-  learning_rate: 5e-4
+  learning_rate: 1e-4
   weight_decay: 0.01
-  num_train_epochs: 15
+  num_train_epochs: 1
   warmup_steps: 500
   fp16: True
   dataloader_pin_memory: True # default = True
@@ -78,8 +78,8 @@ train_args:
   evaluation_strategy: "steps"
   disable_tqdm: True # tqdm (상태바) 숨기기
 hyperparameters:
-  set: False # 아직 True로 쓰지마세요
-  backend: "sigopt"
+  set: True # 아직 True로 쓰지마세요
+  backend: "optuna"
   n_trials: 20
   dataset:
     train:
@@ -88,7 +88,23 @@ hyperparameters:
       shuffle: True # K_fold로 나눌때 섞는다.
       num: 0
     valid:
-      n_splits: 200 # 전체데이터 / n 만큼의 데이터를 사용 (train에 사용된 데이터 제외)
-      add_data: True # 추가 데이터 불러오기
+      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
+      add_data: False # 추가 데이터 불러오기
       shuffle: True # K_fold로 나눌때 섞는다.
       num: 0
+  cfg:
+    learning_rate:
+      min: 1e-6
+      max: 5e-4
+    num_train_epochs:
+      min: 1
+      max: 3
+    seed:
+      min: 1
+      max: 60
+    warmup_step:
+      min: 100
+      max: 1000
+    weight_decay:
+      min: 0.001
+      max: 0.1
