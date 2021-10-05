@@ -72,7 +72,7 @@ def load_test_dataset(dataset_dir, tokenizer, cfg):
     preprocess_name, is_two_sentence = cfg.preprocess.list[cfg.preprocess.pick]
     preprocess_func = getattr(import_module("src.pre_process"), preprocess_name)
 
-    test_dataset = preprocess_func(test_dataset)
+    test_dataset, _, _ = preprocess_func(test_dataset)
     test_label = list(map(int, test_dataset["label"].values))
 
     # tokenizing dataset
@@ -125,8 +125,10 @@ def inference_main(cfg):
             "probs": output_prob,
         }
     )
-
-    os.mkdir(os.path.join(cfg.dir_path.base, cfg.name, cfg.dir_path.submission))
+    if not os.path.exists(
+        os.path.join(cfg.dir_path.base, cfg.name, cfg.dir_path.submission)
+    ):
+        os.mkdir(os.path.join(cfg.dir_path.base, cfg.name, cfg.dir_path.submission))
     output.to_csv(
         os.path.join(
             cfg.dir_path.base, cfg.name, cfg.dir_path.submission, "submission.csv"
