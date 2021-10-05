@@ -12,7 +12,7 @@ def tokenized_dataset(dataset, tokenizer):
     )
 
 
-def tokenized_dataset_with_division(dataset, tokenizer, set_aeda=False, aeda_cfg=None):
+def tokenized_dataset_with_division(dataset, tokenizer):
     """
     2 문장을 나누어 토크나이저에 입력합니다.
     문장 사이에는 @@@@@가 들어가도록 전처리 해야합니다.
