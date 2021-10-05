@@ -47,17 +47,17 @@ preprocess: # [함수이름, 2문장으로 나누는가? (베이스라인 전처
     2: ["dataset_with_full_special_tokens", False]
     3: ["dataset_with_least_special_tokens", False]
     4: ["data_preprocess2", False]
+    5: ["dataset_preprocess_base_for_AEDA", True]
 EDA_AEDA:
   set: False
   AEDA:
     set: False
     tqdm: True
-    morpheme_analyzer: "Okt"
-    punc_ratio: 0.3
-    punctuations: [".", ",", "!", "?", ";", ":"]
+    morpheme_analyzer: "Okt" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
+    punc_ratio: 0.2 # 0.3 이상이 넘어가면 지옥을 보여드립니다. (훈련시간보다 AEDA 시간이 더걸려요)
+    punctuations: [".", ",", "!", "?", ";", ":"] # 기본값 [".", ",", "!", "?", ";", ":"]
     generator:
-      p: 0.9
-      repetition: 3
+      repetition: 2 # 몇개의 AEDA 문장을 만들것인가? AEDA후 훈련데이터셋 갯수 = 훈련데이터셋 * (1 + repetition)
 train_args:
   log: "logs" # 저장할 폴더
   output: "results" # 저장할 폴더
