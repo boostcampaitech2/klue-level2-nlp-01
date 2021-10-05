@@ -12,12 +12,8 @@ def AEDA_init(aeda_cfg):
 def AEDA_generator(sentence, aeda_cfg):
     aeda = AEDA_init(aeda_cfg)
     print(sentence)
-    re = []
-    for sen in sentence:
-        print("\n" + sen + "\n")
-        result = aeda(
-            sen, p=aeda_cfg.generator.p, repetition=aeda_cfg.generator.repetition
-        )
-        print(result)
-        re.append(result)
+    result = aeda(
+        sentence, p=aeda_cfg.generator.p, repetition=aeda_cfg.generator.repetition
+    )
+    print(result)
     return result
