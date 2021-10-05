@@ -1,6 +1,7 @@
 import torch
 import os
 from importlib import import_module
+from shutil import copyfile
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
@@ -47,6 +48,17 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
 def model_train(cfg):
     train_name = cfg.name
     print(f"\n\n *** {train_name} START !! ***\n\n")
+
+    # 폴더생성, 설정파일 복사
+    if not os.path.exists(cfg.dir_path.base):
+        os.mkdir(cfg.dir_path.base)
+    if not os.path.exists(os.path.join(cfg.dir_path.base, train_name)):
+        os.mkdir(os.path.join(cfg.dir_path.base, train_name))
+    copyfile(
+        os.path.join(cfg.dir_path.code, "../", "main_cfg.yaml"),
+        os.path.join(cfg.dir_path.base, train_name, "config.yaml"),
+    )
+
     # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
     print(f"\n\n Target model: {cfg.model.model_list[MODEL_INDEX]}\n\n")
