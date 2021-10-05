@@ -1,4 +1,5 @@
 from koeda import AEDA
+from tqdm import tqdm
 
 
 def AEDA_init(aeda_cfg):
@@ -11,9 +12,15 @@ def AEDA_init(aeda_cfg):
 
 def AEDA_generator(sentence, aeda_cfg):
     aeda = AEDA_init(aeda_cfg)
-    print(sentence)
-    result = aeda(
-        sentence, p=aeda_cfg.generator.p, repetition=aeda_cfg.generator.repetition
-    )
-    print(result)
-    return result
+    aeda_sentences = []
+    if aeda_cfg.tqdm:
+        sentence_loop = tqdm(sentence, desc="AEDA Process! ")
+    else:
+        sentence_loop = sentence
+    for i in sentence_loop:
+        result = aeda(i, repetition=aeda_cfg.generator.repetition)
+        if aeda_cfg.generator.repetition == 1:
+            aeda_sentences.append(result)
+        else:
+            aeda_sentences.extend(result)
+    return aeda_sentences
