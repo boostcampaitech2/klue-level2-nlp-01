@@ -1,9 +1,7 @@
-import pickle as pickle
 import torch
 import os
 from importlib import import_module
 from transformers import (
-    AutoTokenizer,
     AutoConfig,
     AutoModelForSequenceClassification,
     Trainer,
