@@ -208,8 +208,8 @@ def data_preprocess_Cap_Token(sub, obj, sen):
     """
     add_tokens, special_tokens = [], ["SUB", "OBJ", sub["type"], obj["type"]]
     ###### TODO Your Logic ######
-    sub_start_token, sub_end_token = "[SUB]", "[/SUB]"
-    obj_start_token, obj_end_token = "[OBJ]", "[/OBJ]"
+    sub_start_token, sub_end_token = f"[SUB:{sub['type']}]", f"[/SUB:{sub['type']}]"
+    obj_start_token, obj_end_token = f"[OBJ:{obj['type']}]", f"[/OBJ:{obj['type']}]"
     add_index = [
         (sub["start_idx"], sub_start_token + f" {sub['type']} @ "),
         (sub["end_idx"] + 1, sub_end_token),
