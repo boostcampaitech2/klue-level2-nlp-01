@@ -52,7 +52,7 @@ def model_train(cfg):
     # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
     print(f"\n\n Target model: {cfg.model.model_list[MODEL_INDEX]}\n\n")
-    tokenizer = load_tokenizer(MODEL_INDEX, cfg.model)
+    tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
 
     # 데이터셋 불러오기
     train_dataset = train_data_with_addition(
