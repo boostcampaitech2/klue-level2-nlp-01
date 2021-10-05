@@ -41,6 +41,10 @@ def preprocess_decorator(func):
                 "label": labels,
             }
         )
+        out_dataset = out_dataset.drop_duplicates(
+            subset=["sentence", "label"],
+            keep="first",
+        )
         return (
             out_dataset,
             list(add_tokens),
