@@ -64,13 +64,13 @@ def AEDA_generator(sentence, aeda_cfg):
     else:
         sentence_loop = sentence
     for sentence in sentence_loop:
-        for _ in range(aeda_cfg.generator.repetition):
-            result = aeda(
-                sentence,
-                p=random.uniform(
-                    aeda_cfg.generator.punc_ratio.min, aeda_cfg.generator.punc_ratio.max
-                ),
-            )
+        result = aeda(
+            sentence,
+            repetition=aeda_cfg.generator.repetition,
+            p=aeda_cfg.generator.punc_ratio,
+        )
+        if isinstance(result, str):
             aeda_sentences.append(result)
-
+        else:
+            aeda_sentences.extend(result)
     return aeda_sentences
