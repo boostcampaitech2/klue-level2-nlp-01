@@ -17,9 +17,6 @@ def revert_space(text: list) -> str:
 
 
 class myAEDA(AEDA):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def _aeda(self, data: str, p: float) -> str:
         if p is None:
             p = self.ratio
