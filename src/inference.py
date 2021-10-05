@@ -123,4 +123,4 @@ def inference_main(cfg):
         index=False,
     )  # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
     #### 필수!! ##############################################
-    print("---- Finish! ----")
+    print("\n\n---- Finish! ----")
