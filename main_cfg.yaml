@@ -32,6 +32,16 @@ model:
     pick: 0
     list:
       0: "TokenClassificationModel"
+EDA_AEDA:
+  set: False
+  AEDA:
+    set: False
+    morpheme_analyzer: "Okt"
+    punc_ratio: 0.3
+    punctuations: [".", ",", "!", "?", ";", ":"]
+    generator:
+      p: 0.9
+      repetition: 3
 tokenizer:
   pick: 2
   list: # tokenizing.py에 함수 이름을 적어주세요. 토크나이징 추가시 목록에 함수 이름을 추가하시면 자동으로 동작합니다.
@@ -50,7 +60,7 @@ train_args:
   warmup_steps: 500
   fp16: True
   dataloader_pin_memory: True
-  gradient_accumulation_steps: 4
+  gradient_accumulation_steps: 4 # default = 1
   save_total_limit: 3
   save_steps: 500
   logging_steps: 100
