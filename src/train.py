@@ -52,7 +52,7 @@ def model_train(cfg):
     # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
     print(f"\n\n Target model: {cfg.model.model_list[MODEL_INDEX]}\n\n")
-    tokenizer, model = load_tokenizer_and_model(MODEL_INDEX, cfg.model)
+    tokenizer = load_tokenizer(MODEL_INDEX, cfg.model)
 
     # 데이터셋 불러오기
     train_dataset = train_data_with_addition(
@@ -94,7 +94,8 @@ def model_train(cfg):
         model = getattr(
             import_module("src.custom_models"),
             cfg.model.custom_model_args.list[cfg.model.custom_model_args.pick],
-        )
+        )(cfg.model.model_list[MODEL_INDEX])
+        model.model.resize_token_embeddings(len(tokenizer))
     else:
         MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
         model_config = AutoConfig.from_pretrained(MODEL_NAME)
@@ -102,7 +103,7 @@ def model_train(cfg):
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_NAME, config=model_config
         )
-    model.resize_token_embeddings(len(tokenizer))
+        model.resize_token_embeddings(len(tokenizer))
     # model.parameters  # 이건 도대체 무슨역할일까?
     model.to(device)
 

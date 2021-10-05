@@ -73,9 +73,9 @@ class TokenClassificationModel(nn.Module):
         super().__init__()
 
         self.model = AutoModel.from_pretrained(MODEL_NAME)
-        self.model.resize_token_embeddings(
-            self.model.config.vocab_size + len(self.typed_entity_marker)
-        )
+        # self.model.resize_token_embeddings(
+        #     self.model.config.vocab_size + len(self.typed_entity_marker)
+        # )
 
         self.num_labels = 30
         self.hidden_size = self.model.config.hidden_size
@@ -103,7 +103,8 @@ class TokenClassificationModel(nn.Module):
     ):
 
         batch_size = input_ids.size(0)
-        entity_token_mask = input_ids >= 32000  # [batch, seq_len] 엔티티 토큰만을 골라내기 위한 Mask
+        # [batch, seq_len] 엔티티 토큰만을 골라내기 위한 Mask
+        entity_token_mask = input_ids >= 32000
 
         outputs = self.model(
             input_ids,
