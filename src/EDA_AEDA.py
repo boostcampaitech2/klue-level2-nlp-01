@@ -11,7 +11,7 @@ def AEDA_init(aeda_cfg):
 
 def AEDA_generator(aeda, sentence, aeda_generator_cfg):
     result = aeda(
-        sentence, p=aeda_generator_cfg, repetition=aeda_generator_cfg.repetition
+        sentence, p=aeda_generator_cfg.p, repetition=aeda_generator_cfg.repetition
     )
     if aeda_generator_cfg.repetition == 1:
         return [result]
