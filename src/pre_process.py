@@ -11,29 +11,35 @@ def preprocess_decorator(func):
     """
 
     def inner_logics(dataset, set_AEDA=False, AEDA_cfg=None):
+        ids = []
         sentences = []
         labels = []
         add_tokens = set()
         special_tokens = set()
-        for sub, obj, sen, label in zip(
+        for sub, obj, sen, label, id in zip(
             dataset["subject_entity"],
             dataset["object_entity"],
             dataset["sentence"],
             dataset["label"],
+            dataset["id"],
         ):
             sens, a_t, s_t = func(sub, obj, sen)
             sentences.append(sens)
             labels.append(label)
+            ids.append(id)
             add_tokens.update(a_t)
             special_tokens.update(s_t)
         if set_AEDA:
             aeda_sentences = AEDA_generator(sentences, AEDA_cfg)
             repetition = AEDA_cfg.generator.repetition
             aeda_labels = [value for value in labels for _ in range(repetition)]
+            add_ids = [value for value in ids for _ in range(repetition)]
             sentences.extend(aeda_sentences)
             labels.extend(aeda_labels)
+            ids.extend(add_ids)
         out_dataset = pd.DataFrame(
             {
+                "id": ids,
                 "sentence": sentences,
                 "label": labels,
             }
