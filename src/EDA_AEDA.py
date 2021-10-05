@@ -9,10 +9,17 @@ def AEDA_init(aeda_cfg):
     )
 
 
-def AEDA_generator(aeda, sentence, aeda_generator_cfg):
+def AEDA_generator(sentence, aeda_cfg):
+    print(len(sentence))
+    print(sentence[2])
+    aeda = AEDA_init(aeda_cfg)
     result = aeda(
-        sentence, p=aeda_generator_cfg.p, repetition=aeda_generator_cfg.repetition
+        sentence[:3], p=aeda_cfg.generator.p, repetition=aeda_cfg.generator.repetition
     )
-    if aeda_generator_cfg.repetition == 1:
-        return [result]
+    print(result)
     return result
+
+
+aeda = AEDA(
+    morpheme_analyzer="Okt", punc_ratio=0.3, punctuations=[".", ",", "!", "?", ";", ":"]
+)

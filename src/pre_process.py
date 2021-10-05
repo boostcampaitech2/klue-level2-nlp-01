@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.EDA_AEDA import AEDA_init, AEDA_generator
+from src.EDA_AEDA import AEDA_generator
 
 
 def preprocess_decorator(func):
@@ -15,7 +15,7 @@ def preprocess_decorator(func):
         labels = []
         add_tokens = set()
         special_tokens = set()
-        AEDA = AEDA_init(AEDA_cfg) if set_AEDA else None
+        AEDA = None
         for sub, obj, sen, label in zip(
             dataset["subject_entity"],
             dataset["object_entity"],
@@ -27,7 +27,8 @@ def preprocess_decorator(func):
                 obj,
                 sen,
                 label,
-                set_AEDA,
+                # set_AEDA,
+                False,
                 AEDA,
                 AEDA_cfg,
             )
@@ -35,6 +36,12 @@ def preprocess_decorator(func):
             labels.extend(lab)
             add_tokens.update(a_t)
             special_tokens.update(s_t)
+        if set_AEDA:
+            aeda_sentences = AEDA_generator(sentences, AEDA_cfg)
+            repetition = AEDA_cfg.generator.repetition
+            aeda_labels = [value for value in labels for _ in range(repetition)]
+            sentences.extend(aeda_sentences)
+            labels.extend(aeda_labels)
         out_dataset = pd.DataFrame(
             {
                 "sentence": sentences,

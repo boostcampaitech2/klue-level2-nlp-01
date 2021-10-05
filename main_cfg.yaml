@@ -51,6 +51,7 @@ EDA_AEDA:
   set: False
   AEDA:
     set: False
+    tqdm: True
     morpheme_analyzer: "Okt"
     punc_ratio: 0.3
     punctuations: [".", ",", "!", "?", ";", ":"]
