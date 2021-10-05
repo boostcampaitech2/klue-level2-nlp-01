@@ -3,7 +3,7 @@ from koeda import AEDA
 
 def AEDA_init(aeda_cfg):
     return AEDA(
-        morpheme_analyzer=aeda_cfg.morphme_analyzer,
+        morpheme_analyzer=aeda_cfg.morpheme_analyzer,
         punc_ratio=aeda_cfg.punc_ratio,
         punctuations=aeda_cfg.punctuations,
     )
