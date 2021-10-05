@@ -34,7 +34,7 @@ model:
       0: "TokenClassificationModel"
 dataset:
   add_data: True # 추가 데이터 불러오기
-  dev_data: True # dev_data_path를 검증데이터로 사용, True일 경우 아래 dataset 옵션은 적용안됨
+  dev_data: True # dev_data_path를 검증데이터로 사용, True일 경우 아래 K_FOLD 옵션은 적용안됨
   add_dev_data: True # dev_data도 추가 데이터 함수를 적용할지 결정합니다.
   n_splits: 7 # K_fold 시 몇개의 데이터로 나눌것인가?
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
