@@ -1,9 +1,8 @@
-import pickle as pickle
 import torch
 import os
 from importlib import import_module
+from shutil import copyfile
 from transformers import (
-    AutoTokenizer,
     AutoConfig,
     AutoModelForSequenceClassification,
     Trainer,
@@ -49,6 +48,17 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
 def model_train(cfg):
     train_name = cfg.name
     print(f"\n\n *** {train_name} START !! ***\n\n")
+
+    # 폴더생성, 설정파일 복사
+    if not os.path.exists(cfg.dir_path.base):
+        os.mkdir(cfg.dir_path.base)
+    if not os.path.exists(os.path.join(cfg.dir_path.base, train_name)):
+        os.mkdir(os.path.join(cfg.dir_path.base, train_name))
+    copyfile(
+        os.path.join(cfg.dir_path.code, "../", "main_cfg.yaml"),
+        os.path.join(cfg.dir_path.base, train_name, "config.yaml"),
+    )
+
     # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
     print(f"\n\n Target model: {cfg.model.model_list[MODEL_INDEX]}\n\n")
@@ -64,16 +74,33 @@ def model_train(cfg):
         )
     else:
         train_dataset, valid_dataset = get_stratified_K_fold(train_dataset, cfg.dataset)
-    train_label = label_to_num(train_dataset["label"].values, cfg)
-    valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
     print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")
 
+    # 데이터 전처리
+    print(f"\n START PreProcess \n")
+    preprocess_name, is_two_sentence = cfg.preprocess.list[cfg.preprocess.pick]
+    preprocess_func = getattr(import_module("src.pre_process"), preprocess_name)
+
+    train_dataset, add_tokens, special_tokens = preprocess_func(
+        train_dataset, cfg.EDA_AEDA.AEDA.set, cfg.EDA_AEDA.AEDA
+    )
+    valid_dataset = preprocess_func(valid_dataset)
+
+    train_label = label_to_num(train_dataset["label"].values, cfg)
+    valid_label = label_to_num(valid_dataset["label"].values, cfg)
+
     # 데이터셋 토크나이징
     print(f"\n\n tokenizer_module: {cfg.tokenizer.list[cfg.tokenizer.pick]}\n\n")
-    tokenizer_module = getattr(
-        import_module("src.tokenizing"), cfg.tokenizer.list[cfg.tokenizer.pick]
+
+    tokenizer.add_tokens(add_tokens)
+    tokenizer.add_special_tokens(special_tokens)
+
+    token_func = (
+        "tokenized_dataset_with_division" if is_two_sentence else "tokenized_dataset"
     )
+    tokenizer_module = getattr(import_module("src.tokenizing"), token_func)
+
     tokenized_train = tokenizer_module(train_dataset, tokenizer)
     tokenized_valid = tokenizer_module(valid_dataset, tokenizer)
 

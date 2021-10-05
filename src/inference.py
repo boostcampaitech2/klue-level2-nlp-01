@@ -59,18 +59,29 @@ def num_to_label(label, cfg):
     return origin_label
 
 
-def load_test_dataset(dataset_dir, tokenizer, tokenizer_cfg):
+def load_test_dataset(dataset_dir, tokenizer, cfg):
     """
     test dataset을 불러온 후,
+    전처리 후,
     tokenizing 합니다.
     """
+    # 데이터셋 로드
     test_dataset = load_data(dataset_dir)
+
+    # 전처리
+    preprocess_name, is_two_sentence = cfg.preprocess.list[cfg.preprocess.pick]
+    preprocess_func = getattr(import_module("src.pre_process"), preprocess_name)
+
+    test_dataset = preprocess_func(test_dataset)
     test_label = list(map(int, test_dataset["label"].values))
+
     # tokenizing dataset
-    tokenizer_module = getattr(
-        import_module("src.tokenizing"), tokenizer_cfg.list[tokenizer_cfg.pick]
+    token_func = (
+        "tokenized_dataset_with_division" if is_two_sentence else "tokenized_dataset"
     )
+    tokenizer_module = getattr(import_module("src.tokenizing"), token_func)
     tokenized_test = tokenizer_module(test_dataset, tokenizer)
+
     return test_dataset["id"], tokenized_test, test_label
 
 
@@ -94,7 +105,7 @@ def inference_main(cfg):
     ## load test datset
     test_dataset_dir = cfg.dir_path.test_data_path
     test_id, test_dataset, test_label = load_test_dataset(
-        test_dataset_dir, tokenizer, cfg.tokenizer
+        test_dataset_dir, tokenizer, cfg
     )
     Re_test_dataset = RE_Dataset(test_dataset, test_label)
 
@@ -123,4 +134,4 @@ def inference_main(cfg):
         index=False,
     )  # 최종적으로 완성된 예측한 라벨 csv 파일 형태로 저장.
     #### 필수!! ##############################################
-    print("---- Finish! ----")
+    print("\n\n---- Finish! ----")
