@@ -91,7 +91,7 @@ def model_train(cfg):
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
 
     # 데이터셋 토크나이징
-    print(f"\n\n tokenizer_module: {cfg.tokenizer.list[cfg.tokenizer.pick]}\n\n")
+    print(f"\n\n tokenizing START \n\n")
 
     tokenizer.add_tokens(add_tokens)
     tokenizer.add_special_tokens(special_tokens)
