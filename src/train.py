@@ -121,7 +121,8 @@ def model_train(cfg):
         model = getattr(
             import_module("src.custom_models"),
             cfg.model.custom_model_args.list[cfg.model.custom_model_args.pick],
-        )
+        )(cfg.model.model_list[MODEL_INDEX])
+        model.model.resize_token_embeddings(len(tokenizer))
     else:
         MODEL_NAME = cfg.model.model_list[MODEL_INDEX]
         model_config = AutoConfig.from_pretrained(MODEL_NAME)
@@ -129,7 +130,7 @@ def model_train(cfg):
         model = AutoModelForSequenceClassification.from_pretrained(
             MODEL_NAME, config=model_config
         )
-    model.resize_token_embeddings(len(tokenizer))
+        model.resize_token_embeddings(len(tokenizer))
     # model.parameters  # 이건 도대체 무슨역할일까?
     model.to(device)
 

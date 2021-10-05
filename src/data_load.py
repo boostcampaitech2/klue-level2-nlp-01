@@ -25,11 +25,14 @@ class RE_Dataset(torch.utils.data.Dataset):
 def load_tokenizer_and_model(model_index, model_cfg):
     MODEL_NAME = model_cfg.model_list[model_index]
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    model_config = AutoConfig.from_pretrained(MODEL_NAME)
-    model_config.num_labels = model_cfg.num_labels
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME, config=model_config
-    )
+    if model_cfg.custom_model:
+        model = ""
+    else:
+        model_config = AutoConfig.from_pretrained(MODEL_NAME)
+        model_config.num_labels = model_cfg.num_labels
+        model = AutoModelForSequenceClassification.from_pretrained(
+            MODEL_NAME, config=model_config
+        )
     return tokenizer, model
 
 
@@ -149,4 +152,4 @@ def get_stratified_K_fold(dataset: pd.DataFrame, dataset_cfg):
 
 
 if __name__ == "__main__":
-    print(additional_data())
+    print(train_data_with_addition("/opt/ml/dataset/train/train.csv", False))

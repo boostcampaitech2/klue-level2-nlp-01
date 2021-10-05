@@ -1,11 +1,11 @@
+pandas==1.1.5
 black==21.9b0
 Hydra==2.5
 hydra-core==1.1.1
 matplotlib==3.4.3
 numpy==1.19.2
-pandas==1.1.5
-scikit-learn==0.24.2=
+scikit-learn~=0.24.1
 torch==1.7.1
 transformers==4.10.0
-wandb==0.12.3
+wandb==0.12.4
 koeda==0.0.4
