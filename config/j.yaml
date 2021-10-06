@@ -1,5 +1,4 @@
-name: "klue_bert_base_with_dev"
-multi_config: False
+name: "klue-bert-base_hp"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -10,7 +9,7 @@ dir_path: # 경로설정
   model: "best_model"
   submission: "prediction"
 model:
-  pick: 8
+  pick: 9
   num_labels: 30
   model_list:
     # huggingface model 이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요.
@@ -79,12 +78,13 @@ train_args:
   evaluation_strategy: "steps"
   disable_tqdm: True # tqdm (상태바) 숨기기
 hyperparameters:
-  set: False # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
+  set: True # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
   backend: "optuna"
-  n_trials: 20
+  n_trials: 10
   dataset:
     train:
-      add_data: False # 추가 데이터 불러오기
+      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
+      add_data: True # 추가 데이터 불러오기
       shuffle: True # K_fold로 나눌때 섞는다.
       num: 0
     valid:
