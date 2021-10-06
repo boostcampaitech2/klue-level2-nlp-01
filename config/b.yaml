@@ -1,4 +1,4 @@
-name: "klue_bert_base_hp"
+name: "koelectra_hp"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -9,7 +9,7 @@ dir_path: # 경로설정
   model: "best_model"
   submission: "prediction"
 model:
-  pick: 9
+  pick: 0
   num_labels: 30
   model_list:
     # huggingface model 이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요.

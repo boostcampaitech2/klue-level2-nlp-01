@@ -1,4 +1,4 @@
-name: "klue_bert_base_hp"
+name: "klue-bert-base_hp"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
