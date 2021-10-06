@@ -100,21 +100,15 @@ def hyper_parameter_train(cfg):
 
     # 데이터셋 불러오기
     train_dataset = train_data_with_addition(
-        cfg.dir_path.train_data_path, cfg.dataset.add_data
-    )
-    temp_dataset, train_dataset = get_stratified_K_fold(
-        train_dataset, cfg.hyperparameters.dataset.train
+        cfg.dir_path.train_data_path, cfg.hyperparameters.dataset.train.add_data
     )
     if cfg.dataset.dev_data:
         valid_dataset = train_data_with_addition(
-            cfg.dir_path.dev_data_path, cfg.dataset.add_dev_data
-        )
-        _, valid_dataset = get_stratified_K_fold(
-            valid_dataset, cfg.hyperparameters.dataset.valid
+            cfg.dir_path.dev_data_path, cfg.hyperparameters.dataset.valid.add_data
         )
     else:
-        _, valid_dataset = get_stratified_K_fold(
-            temp_dataset, cfg.hyperparameters.dataset.valid
+        train_dataset, valid_dataset = get_stratified_K_fold(
+            train_dataset, cfg.hyperparameters.dataset.valid
         )
 
     print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")

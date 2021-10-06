@@ -1,5 +1,5 @@
 name: "klue_bert_base_with_dev"
-multi_config: False
+multi_config: True
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -84,8 +84,7 @@ hyperparameters:
   n_trials: 20
   dataset:
     train:
-      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
-      add_data: True # 추가 데이터 불러오기
+      add_data: False # 추가 데이터 불러오기
       shuffle: True # K_fold로 나눌때 섞는다.
       num: 0
     valid:
