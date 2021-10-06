@@ -109,7 +109,7 @@ def dataset_preprocess_with_special_tokens(sub, obj, sen):
     add_tokens, special_tokens = [], []
     sub_start_token, sub_end_token = f'[S:{sub["type"]}]', "[/S]"
     obj_start_token, obj_end_token = f'[O:{obj["type"]}]', "[/O]"
-    special_tokens.update([sub_start_token, obj_start_token])
+    special_tokens.extend([sub_start_token, obj_start_token])
     add_index = [
         (sub["start_idx"], sub_start_token),
         (sub["end_idx"] + 1, sub_end_token),
