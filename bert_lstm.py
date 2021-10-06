@@ -22,7 +22,7 @@ class BertLSTM(nn.Module):
         self.config =  AutoConfig.from_pretrained(MODEL_NAME)
         self.config.num_labels = 30
         self.num_labels = 30
-        
+
         Model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, config=self.config)
         
         self.Bert = Model.bert        
@@ -34,10 +34,13 @@ class BertLSTM(nn.Module):
         self.dropout = Model.dropout
         self.classifier = Model.classifier
 
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self.h_0 = torch.zeros((1, 5, 768)).to(device)  # (num_layers * num_dirs, B, d_h)
-        self.c_0 = torch.zeros((1, 5, 768)).to(device)  # (num_layers * num_dirs, B, d_h)
-        
+        # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        # 5말고 다른 것을 넣고싶다. 배치사이즈에 맞게 해당값을 바꾸는 법을 찾아야한다.
+        # 초기값을 forward 부분에서 넣어주면 배치사이즈 들어오는거에 따라 다르게 넣어줄수 있습니다!
+        # nn.LSTM은 초기값을 설정해주지 않으면 자동으로 torch.zeros를 데이터 사이즈에 맞게 넣어주어요!
+        # self.h_0 = torch.zeros((1, 5, 768)).to(device)  # (num_layers * num_dirs, B, d_h)
+        # self.c_0 = torch.zeros((1, 5, 768)).to(device)  # (num_layers * num_dirs, B, d_h)
+    
     def forward(
         self,
         input_ids=None,
@@ -66,7 +69,7 @@ class BertLSTM(nn.Module):
             return_dict=return_dict,
         )
         
-        lstm_outputs, _ = self.lstm(outputs[0], (self.h_0, self.c_0))
+        lstm_outputs, _ = self.lstm(outputs[0])
         # hidden_outputs = outputs[0]
         # pooled_output = outputs[1]
         
@@ -98,7 +101,7 @@ class BertLSTM(nn.Module):
         outputs = (loss, logits)
         return outputs
 
-def trainLSTM():
+def train():
     # load model and tokenizer
     # MODEL_NAME = "bert-base-uncased"
     MODEL_NAME = "klue/bert-base"
@@ -109,7 +112,7 @@ def trainLSTM():
     dev_dataset = load_data("../dataset/train/dev.csv") # validation용 데이터는 따로 만드셔야 합니다.
 
     train_label = label_to_num(train_dataset['label'].values)
-    dev_label = label_to_num(dev_dataset['label'].values)
+    dev_label = label_to_num(dev_dataset['label'].values) 
 
     # tokenizing dataset
     tokenized_train = tokenized_dataset(train_dataset, tokenizer)
@@ -119,21 +122,17 @@ def trainLSTM():
     RE_train_dataset = RE_Dataset(tokenized_train, train_label)
     RE_dev_dataset = RE_Dataset(tokenized_dev, dev_label)
 
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    model = BertLSTM(MODEL_NAME)
-    model.to(device)
-
     # 사용한 option 외에도 다양한 option들이 있습니다.
     # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
     training_args = TrainingArguments(
         output_dir='./results/lstm_results',          # output directory
         save_total_limit=5,              # number of total save model.
-        save_steps=1500,                 # model saving step.
+        save_steps=500,                 # model saving step.
         num_train_epochs=20,              # total number of training epochs
         learning_rate=5e-5,               # learning_rate
-        per_device_train_batch_size=5,  # batch size per device during training
-        per_device_eval_batch_size=5,   # batch size for evaluation
-        warmup_steps=1500,                # number of warmup steps for learning rate scheduler
+        per_device_train_batch_size=16,  # batch size per device during training
+        per_device_eval_batch_size=16,   # batch size for evaluation
+        warmup_steps=500,                # number of warmup steps for learning rate scheduler
         weight_decay=0.01,               # strength of weight decay
         logging_dir='./logs',            # directory for storing logs
         logging_steps=100,              # log saving step.
@@ -141,10 +140,16 @@ def trainLSTM():
                                     # `no`: No evaluation during training.
                                     # `steps`: Evaluate every `eval_steps`.
                                     # `epoch`: Evaluate every end of epoch.
-        eval_steps = 1500,            # evaluation step.
+        eval_steps = 500,            # evaluation step.
         load_best_model_at_end = True,
-        fp16=True
+        fp16=True,
+        dataloader_drop_last=True
     )
+
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = BertLSTM(MODEL_NAME)
+    model.to(device)
+
     trainer = Trainer(
         model=model,                         # the instantiated 🤗 Transformers model to be trained
         args=training_args,                  # training arguments, defined above
@@ -159,7 +164,7 @@ def trainLSTM():
 
 def main():
     showUtilization()
-    trainLSTM()
+    train()
 
 if __name__ == '__main__':
     main()
