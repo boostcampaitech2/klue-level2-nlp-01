@@ -76,8 +76,8 @@ def compute_metrics(pred):
     }
 
 
-def compute_metrics_f1(pred):
+def compute_metrics_f1(metrics):
     """
     하이퍼 파라미터를 위한 평가함수
     """
-    return klue_re_micro_f1(pred.predictions.argmax(-1), pred.label_ids)
+    return metrics["eval_micro f1 score"]

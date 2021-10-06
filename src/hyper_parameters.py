@@ -11,7 +11,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from src.validation import compute_metrics
+from src.validation import compute_metrics, compute_metrics_f1
 from src.data_load import *
 from src.util import label_to_num
 
@@ -157,6 +157,7 @@ def hyper_parameter_train(cfg):
     trainer.hyperparameter_search(
         direction="maximize",
         backend=cfg.hyperparameters.backend,
+        compute_objective=compute_metrics_f1,
         hp_space=optuna_hp_func_with_cfg(cfg.hyperparameters.cfg),
         n_trials=cfg.hyperparameters.n_trials,
     )
