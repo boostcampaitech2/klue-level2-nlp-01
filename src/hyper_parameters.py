@@ -28,8 +28,8 @@ def optuna_hp_func_with_cfg(hp_cfg):
                 hp_cfg.num_train_epochs.max,
             ),
             "seed": trial.suggest_int("seed", hp_cfg.seed.min, hp_cfg.seed.max),
-            "warmup_step": trial.suggest_int(
-                "warmup_step", hp_cfg.warmup_step.min, hp_cfg.warmup_step.max
+            "warmup_steps": trial.suggest_int(
+                "warmup_steps", hp_cfg.warmup_step.min, hp_cfg.warmup_step.max
             ),
             "weight_decay": trial.suggest_uniform(
                 "weight_decay", hp_cfg.weight_decay.min, hp_cfg.weight_decay.max
