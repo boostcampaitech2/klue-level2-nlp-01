@@ -34,6 +34,14 @@ def optuna_hp_func_with_cfg(hp_cfg):
             "weight_decay": trial.suggest_uniform(
                 "weight_decay", hp_cfg.weight_decay.min, hp_cfg.weight_decay.max
             ),
+            "gradient_accumulation_steps": trial.suggest_int(
+                "gradient_accumulation_steps",
+                hp_cfg.gradient_accumulation_steps.min,
+                hp_cfg.gradient_accumulation_steps.max,
+            ),
+            "per_device_train_batch_size": trial.suggest_categorical(
+                "per_device_train_batch_size", hp_cfg.per_device_train_batch_size
+            ),
         }
 
     return hp_space_optuna

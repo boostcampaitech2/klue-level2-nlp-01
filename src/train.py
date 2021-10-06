@@ -39,6 +39,7 @@ def set_training_args(output_dir, log_dir, train_args_cfg, name):
         # `epoch`: Evaluate every end of epoch.
         eval_steps=train_args_cfg.eval_steps,  # evaluation step.
         load_best_model_at_end=True,
+        seed=train_args_cfg.seed,
         metric_for_best_model="micro f1 score",  # micro f1 score가 높은 모델 저장
         greater_is_better=True,
         disable_tqdm=train_args_cfg.disable_tqdm,
@@ -78,8 +79,6 @@ def model_train(cfg):
     else:
         train_dataset, valid_dataset = get_stratified_K_fold(train_dataset, cfg.dataset)
 
-    print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")
-
     # 데이터 전처리
     print(f"\n START PreProcess \n")
     preprocess_name, is_two_sentence = cfg.preprocess.list[cfg.preprocess.pick]
@@ -94,6 +93,8 @@ def model_train(cfg):
 
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
+
+    print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")
 
     # 데이터셋 토크나이징
     print(f"\n\n tokenizing START \n\n")
