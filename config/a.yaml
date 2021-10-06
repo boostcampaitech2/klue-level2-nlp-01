@@ -1,4 +1,4 @@
-name: "klue_bert_base_hp"
+name: "klue_bert_base"
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
@@ -35,7 +35,7 @@ model:
 dataset:
   add_data: True # 추가 데이터 불러오기
   dev_data: True # dev_data_path를 검증데이터로 사용, True일 경우 아래 K_FOLD 옵션은 적용안됨
-  add_dev_data: True # dev_data도 추가 데이터 함수를 적용할지 결정합니다.
+  add_dev_data: False # dev_data도 추가 데이터 함수를 적용할지 결정합니다.
   n_splits: 7 # K_fold 시 몇개의 데이터로 나눌것인가?
   num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
   shuffle: False # K_fold로 나눌때 섞는다. True 일때 num은 작동하지 않는다
@@ -50,24 +50,24 @@ preprocess: # [함수이름, 2문장으로 나누는가? (베이스라인 전처
     5: ["dataset_preprocess_base_for_AEDA", True]
     6: ["data_preprocess_Cap_Token", False]
 EDA_AEDA:
-  set: False
+  set: True
   AEDA:
-    set: False # AEDA 설정
-    tqdm: True # True -> tqdm(상태바)표시
-    morpheme_analyzer: "Okt" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
+    set: True # AEDA 설정
+    tqdm: False # True -> tqdm(상태바)표시
+    morpheme_analyzer: "Mecab" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
     # punc_ratio: 0.2 # 0.3 이상이 넘어가면 지옥을 보여드립니다. (훈련시간보다 AEDA 시간이 더걸려요) => 아래 generator에서 사용하세요
     punctuations: [".", ",", "!", "?", ";", ":"] # 기본값 [".", ",", "!", "?", ";", ":"]
     generator:
-      punc_ratio: 0.9
-      repetition: 2 # 몇개의 AEDA 문장을 만들것인가? AEDA후 훈련데이터셋 갯수 = 훈련데이터셋 * (1 + repetition)
+      punc_ratio: 0.7
+      repetition: 3 # 몇개의 AEDA 문장을 만들것인가? AEDA후 훈련데이터셋 갯수 = 훈련데이터셋 * (1 + repetition)
 train_args:
   log: "logs" # 저장할 폴더
   output: "results" # 저장할 폴더
   batch_size: 64
-  learning_rate: 1e-4
-  weight_decay: 0.01
-  num_train_epochs: 1
-  warmup_steps: 500
+  learning_rate: 6.273249940044727e-05
+  weight_decay: 0.002423098901713407
+  num_train_epochs: 10
+  warmup_steps: 769
   fp16: True
   dataloader_pin_memory: True # default = True
   gradient_accumulation_steps: 4 # default = 1
@@ -78,13 +78,12 @@ train_args:
   evaluation_strategy: "steps"
   disable_tqdm: True # tqdm (상태바) 숨기기
 hyperparameters:
-  set: True # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
+  set: False # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
   backend: "optuna"
-  n_trials: 10
+  n_trials: 20
   dataset:
     train:
-      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
-      add_data: True # 추가 데이터 불러오기
+      add_data: False # 추가 데이터 불러오기
       shuffle: True # K_fold로 나눌때 섞는다.
       num: 0
     valid:

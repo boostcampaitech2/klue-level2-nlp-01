@@ -39,6 +39,7 @@ def set_training_args(output_dir, log_dir, train_args_cfg, name):
         # `epoch`: Evaluate every end of epoch.
         eval_steps=train_args_cfg.eval_steps,  # evaluation step.
         load_best_model_at_end=True,
+        metric_for_best_model="micro f1 score",  # micro f1 score가 높은 모델 저장
         disable_tqdm=train_args_cfg.disable_tqdm,
         # wandb 저장
         report_to="wandb",
