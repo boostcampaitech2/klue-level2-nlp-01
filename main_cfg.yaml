@@ -1,5 +1,5 @@
 name: "klue_bert_base_with_dev"
-multi_config: True
+multi_config: False
 dir_path: # 경로설정
   code: "/opt/ml/code/src"
   base: "/opt/ml/code/models"
