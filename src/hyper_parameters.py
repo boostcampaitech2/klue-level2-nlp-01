@@ -40,7 +40,7 @@ def optuna_hp_func_with_cfg(hp_cfg):
 
 
 # 하이퍼 파라미터 튜닝용 설정
-def set_hp_training_args(output_dir, train_args_cfg):
+def set_hp_training_args(output_dir, train_args_cfg, name):
     return TrainingArguments(
         output_dir=output_dir,
         evaluation_strategy=train_args_cfg.evaluation_strategy,  # evaluation strategy to adopt during training
@@ -51,6 +51,7 @@ def set_hp_training_args(output_dir, train_args_cfg):
         per_device_eval_batch_size=train_args_cfg.batch_size,  # batch size for evaluation
         load_best_model_at_end=True,
         report_to="wandb",
+        run_name=name,
     )
 
 
@@ -143,7 +144,7 @@ def hyper_parameter_train(cfg):
     output_dir = os.path.join(cfg.dir_path.base, train_name, "hp_optimize")
 
     # Training 설정
-    training_args = set_hp_training_args(output_dir, cfg.train_args)
+    training_args = set_hp_training_args(output_dir, cfg.train_args, cfg.name)
     trainer = Trainer(
         model_init=model_init,  # the instantiated 🤗 Transformers model to be trained
         args=training_args,  # training arguments, defined above

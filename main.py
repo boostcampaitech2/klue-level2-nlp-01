@@ -24,10 +24,11 @@ def main(cfg: DictConfig):
         f = []
         dir_path = cfg.dir_path.code
         for (_, _, filenames) in walk(path.join(cfg.dir_path.code, "..", "config")):
-            print(filenames)
             for filename in filenames:
                 if filename[-5:] == ".yaml":
                     f.append(filename)
+        f.sort()
+        print(f)
         for filename in f:
             multimain(filename[:-5], dir_path)
     else:

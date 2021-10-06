@@ -15,7 +15,7 @@ from src.hyper_parameters import hyper_parameter_train
 from src.util import label_to_num
 
 # Train용 설정
-def set_training_args(output_dir, log_dir, train_args_cfg):
+def set_training_args(output_dir, log_dir, train_args_cfg, name):
     # 사용한 option 외에도 다양한 option들이 있습니다.
     # https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments 참고해주세요.
     return TrainingArguments(
@@ -42,6 +42,7 @@ def set_training_args(output_dir, log_dir, train_args_cfg):
         disable_tqdm=train_args_cfg.disable_tqdm,
         # wandb 저장
         report_to="wandb",
+        run_name=name,
     )
 
 
@@ -139,7 +140,7 @@ def model_train(cfg):
     # Training 설정
     output_dir = os.path.join(cfg.dir_path.base, train_name, cfg.train_args.output)
     log_dir = os.path.join(cfg.dir_path.base, train_name, cfg.train_args.log)
-    training_args = set_training_args(output_dir, log_dir, cfg.train_args)
+    training_args = set_training_args(output_dir, log_dir, cfg.train_args, cfg.name)
     trainer = Trainer(
         model=model,  # the instantiated 🤗 Transformers model to be trained
         args=training_args,  # training arguments, defined above
