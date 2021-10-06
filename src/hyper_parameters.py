@@ -39,30 +39,6 @@ def optuna_hp_func_with_cfg(hp_cfg):
     return hp_space_optuna
 
 
-def hp_space_sigopt(_):
-    return [
-        {
-            "bounds": {"min": 5e-6, "max": 1e-4},
-            "name": "learning_rate",
-            "type": "double",
-            "transformamtion": "log",
-        },
-        {"bounds": {"min": 1, "max": 6}, "name": "num_train_epochs", "type": "int"},
-        {"bounds": {"min": 1, "max": 50}, "name": "seed", "type": "int"},
-        {
-            "categorical_values": ["4", "8", "16", "32", "64"],
-            "name": "per_device_train_batch_size",
-            "type": "categorical",
-        },
-        {"bounds": {"min": 100, "max": 1000}, "name": "warmup_steps", "type": "int"},
-        {
-            "bounds": {"min": 0.001, "max": 0.1},
-            "name": "weight_decay",
-            "type": "double",
-        },
-    ]
-
-
 # 하이퍼 파라미터 튜닝용 설정
 def set_hp_training_args(output_dir, train_args_cfg):
     return TrainingArguments(
@@ -82,16 +58,6 @@ def set_hp_training_args(output_dir, train_args_cfg):
 def hyper_parameter_train(cfg):
     train_name = cfg.name
     print(f"\n\n *** {train_name} HyperParameter START !! ***\n\n")
-
-    # 폴더생성, 설정파일 복사
-    if not os.path.exists(cfg.dir_path.base):
-        os.mkdir(cfg.dir_path.base)
-    if not os.path.exists(os.path.join(cfg.dir_path.base, train_name)):
-        os.mkdir(os.path.join(cfg.dir_path.base, train_name))
-    copyfile(
-        os.path.join(cfg.dir_path.code, "../", "main_cfg.yaml"),
-        os.path.join(cfg.dir_path.base, train_name, "config.yaml"),
-    )
 
     # 토크나이저와 모델 불러오기
     MODEL_INDEX = cfg.model.pick
