@@ -22,9 +22,7 @@ def multimain(filename, cfg):
 def main(cfg: DictConfig):
     if cfg.multi_config:
         f = []
-        print("hi")
         for (_, _, filenames) in walk(path.join(cfg.dir_path.code, "..", "config")):
-            print("hi2")
             print(filenames)
             for filename in filenames:
                 if filename[-5:] == ".yaml":
