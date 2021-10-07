@@ -35,6 +35,7 @@ object_entity: 오라클
 
 # 사용법
 
+- pip install -r requirements.txt
 - main_cfg.yaml 을 설정한다.
 - main.py을 실행하여 훈련시킨다.
 - models 폴더에 생성된 모델의 결과물을 제출한다.
