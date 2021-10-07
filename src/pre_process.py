@@ -98,22 +98,22 @@ def dataset_preprocess_base(sub, obj, sen):
 @preprocess_decorator
 def dataset_preprocess_base_for_AEDA(sub, obj, sen):
     """
-    sentence: [CLS]이순신@PER [SEP] 장군@TITLE @@@@@ 이순신 장군은 조선 제일의 무신이다.[SEP]
+    sentence: [CLS] PER 이순신 [SEP] TITLE 장군 [SEP] 이순신 장군은 조선 제일의 무신이다.[SEP]
     @@@@@ 를 쓸 경우 토크나이저시 해당부분이 SEP으로 교체됩니다.
     AEDA 시 좋은성능을 보일거라 예상합니다.
     """
     add_tokens, special_tokens = [], []
     pre_sen = (
-        sub["word"]
-        + " @ "
-        + sub["type"]
+        sub["type"]
+        + " "
+        + sub["word"]
         + " [SEP] "
-        + obj["word"]
-        + " @ "
         + obj["type"]
+        + " "
+        + obj["word"]
         + " @@@@@ "
     )
-    add_tokens.extend([sub["type"], obj["type"]])
+    special_tokens.extend([sub["type"], obj["type"]])
     return [pre_sen, sen], add_tokens, special_tokens
 
 
