@@ -12,6 +12,7 @@ def preprocess_decorator(func):
 
     def inner_logics(dataset, set_AEDA=False, AEDA_cfg=None):
         ids = []
+        pre_sentences = []
         sentences = []
         labels = []
         add_tokens = set()
@@ -24,7 +25,11 @@ def preprocess_decorator(func):
             dataset["id"],
         ):
             sens, a_t, s_t = func(sub, obj, sen)
-            sentences.append(sens)
+            if isinstance(sens, str):
+                sentences.append(sens)
+            else:
+                pre_sentences.append(sens[0])
+                sentences.append(sens[1])
             labels.append(label)
             ids.append(id)
             add_tokens.update(a_t)
@@ -37,6 +42,16 @@ def preprocess_decorator(func):
             sentences.extend(aeda_sentences)
             labels.extend(aeda_labels)
             ids.extend(add_ids)
+        if len(pre_sentences) != 0:
+            for index, sen in enumerate(pre_sentences):
+                sentences[index] = pre_sentences[index] + sentences[index]
+                if set_AEDA:
+                    repetition = AEDA_cfg.generator.repetition
+                    for rep in range(repetition):
+                        sentences[len(pre_sentences) + (index * repetition) + rep] = (
+                            pre_sentences[index]
+                            + sentences[len(pre_sentences) + (index * repetition) + rep]
+                        )
         out_dataset = pd.DataFrame(
             {
                 "id": ids,
@@ -48,6 +63,9 @@ def preprocess_decorator(func):
             subset=["sentence", "label"],
             keep="first",
         )
+        print("데이터 앞단\n", out_dataset.head(5))
+        print("데이터 샘플\n", out_dataset.sample(5))
+        print("데이터 뒷단\n", out_dataset.tail(5))
         return (
             out_dataset,
             list(add_tokens),
@@ -65,40 +83,38 @@ def dataset_preprocess_base(sub, obj, sen):
     add_tokens, special_tokens = [], []
     pre_sen = (
         sub["word"]
-        + "@"
+        + " @ "
         + sub["type"]
         + "[SEP]"
         + obj["word"]
-        + "@"
+        + " @ "
         + obj["type"]
         + " @@@@@ "
     )
     add_tokens.extend([sub["type"], obj["type"]])
-    sentence = pre_sen + sen
-    return sentence, add_tokens, special_tokens
+    return [pre_sen, sen], add_tokens, special_tokens
 
 
 @preprocess_decorator
 def dataset_preprocess_base_for_AEDA(sub, obj, sen):
     """
-    sentence: 이순신@PER & 장군@TITLE @@@@@ 이순신 장군은 조선 제일의 무신이다.
+    sentence: [CLS]이순신@PER [SEP] 장군@TITLE @@@@@ 이순신 장군은 조선 제일의 무신이다.[SEP]
     @@@@@ 를 쓸 경우 토크나이저시 해당부분이 SEP으로 교체됩니다.
     AEDA 시 좋은성능을 보일거라 예상합니다.
     """
     add_tokens, special_tokens = [], []
     pre_sen = (
         sub["word"]
-        + "@"
+        + " @ "
         + sub["type"]
-        + " & "
+        + " [SEP] "
         + obj["word"]
-        + "@"
+        + " @ "
         + obj["type"]
         + " @@@@@ "
     )
     add_tokens.extend([sub["type"], obj["type"], "&"])
-    sentence = pre_sen + sen
-    return sentence, add_tokens, special_tokens
+    return [pre_sen, sen], add_tokens, special_tokens
 
 
 @preprocess_decorator
@@ -214,12 +230,12 @@ def data_preprocess_Cap_Token(sub, obj, sen):
     """
     add_tokens, special_tokens = [], ["SUB", "OBJ", sub["type"], obj["type"]]
     ###### TODO Your Logic ######
-    sub_start_token, sub_end_token = f"[SUB:{sub['type']}]", f"[/SUB:{sub['type']}]"
-    obj_start_token, obj_end_token = f"[OBJ:{obj['type']}]", f"[/OBJ:{obj['type']}]"
+    sub_start_token, sub_end_token = f"[SUB@{sub['type']}]", f"[/SUB@{sub['type']}]"
+    obj_start_token, obj_end_token = f"[OBJ@{obj['type']}]", f"[/OBJ@{obj['type']}]"
     add_index = [
-        (sub["start_idx"], sub_start_token + f" {sub['type']} @ "),
+        (sub["start_idx"], sub_start_token),
         (sub["end_idx"] + 1, sub_end_token),
-        (obj["start_idx"], obj_start_token + f" {obj['type']} @ "),
+        (obj["start_idx"], obj_start_token),
         (obj["end_idx"] + 1, obj_end_token),
     ]
     add_index.sort(key=lambda x: x[0], reverse=True)

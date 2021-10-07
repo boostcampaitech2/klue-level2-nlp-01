@@ -86,8 +86,6 @@ def hyper_parameter_train(cfg):
             train_dataset, cfg.hyperparameters.dataset.valid
         )
 
-    print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")
-
     # 데이터 전처리
 
     print(f"\n START PreProcess \n")
@@ -103,6 +101,8 @@ def hyper_parameter_train(cfg):
 
     train_label = label_to_num(train_dataset["label"].values, cfg)
     valid_label = label_to_num(valid_dataset["label"].values, cfg)
+
+    print(f"\n\n train_data: {len(train_dataset)}, dev_data: {len(valid_dataset)} \n\n")
 
     # 데이터셋 토크나이징
     print(f"\n\n tokenizing START \n\n")

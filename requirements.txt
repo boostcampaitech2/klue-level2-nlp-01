@@ -9,3 +9,4 @@ torch==1.7.1
 transformers==4.10.0
 wandb==0.12.4
 koeda==0.0.4
+optuna==2.10.0

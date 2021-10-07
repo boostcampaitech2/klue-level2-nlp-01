@@ -31,6 +31,8 @@ class myAEDA(AEDA):
             for index in range(len(split_words))
             if split_words[index] != SPACE_TOKEN
         ]
+        if len(qs_list) < q:
+            q = len(qs_list)
         qs = random.sample(qs_list, q)
 
         for j, word in enumerate(split_words):
