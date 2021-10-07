@@ -113,7 +113,7 @@ def dataset_preprocess_base_for_AEDA(sub, obj, sen):
         + obj["type"]
         + " @@@@@ "
     )
-    add_tokens.extend([sub["type"], obj["type"], "&"])
+    add_tokens.extend([sub["type"], obj["type"]])
     return [pre_sen, sen], add_tokens, special_tokens
 
 
