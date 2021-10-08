@@ -1,0 +1,114 @@
+name: "Klue_Bert_Base"
+multi_config: False
+dir_path: # 경로설정
+  code: "/opt/ml/code/src"
+  base: "/opt/ml/code/models"
+  train_data_path: "/opt/ml/dataset/train/train.csv"
+  test_data_path: "/opt/ml/dataset/test/test_data.csv"
+  dev_data_path: "/opt/ml/dataset/train/dev.csv"
+  tokenizer: "tokenizer"
+  model: "best_model"
+  submission: "prediction"
+model:
+  pick: 9 # 아래 모델리스트중 골라 사용하세요
+  num_labels: 30
+  model_list:
+    # huggingface model 이름을 추가합니다. 원하시는 모델이 있으면 더 넣어주세요.
+    # Custom_model 사용시 pretrained 토크나이저 번호를 입력해주세요.
+    0: "monologg/koelectra-base-v3-discriminator"
+    1: "HanBert-54kN-torch"
+    2: "kykim/bert-kor-base"
+    3: "monologg/koelectra-small-v3-discriminator"
+    4: "monologg/kobert"
+    5: "hyunwoongko/kobart"
+    6: "kykim/electra-kor-base"
+    7: "kykim/albert-kor-base"
+    8: "kykim/funnel-kor-base"
+    9: "klue/bert-base"
+    10: "klue/roberta-large"
+    11: "klue/roberta-base"
+    12: "klue/roberta-small"
+  custom_model: False # 커스텀모델 사용시
+  custom_model_args:
+    pick: 0
+    list:
+      0: "TokenClassificationModel"
+dataset:
+  add_data: True # 추가 데이터 불러오기
+  dev_data: True # dev_data_path를 검증데이터로 사용, True일 경우 아래 K_FOLD 옵션은 적용안됨
+  add_dev_data: False # dev_data도 추가 데이터 함수를 적용할지 결정합니다.
+  n_splits: 7 # K_fold 시 몇개의 데이터로 나눌것인가?
+  num: 0 # K_fold로 나눈 데이터중 num번재 인덱스를 가져온다.
+  shuffle: False # K_fold로 나눌때 섞는다. True 일때 num은 작동하지 않는다
+preprocess: # [함수이름, 2문장으로 나누는가? (베이스라인 전처리 방식)]
+  pick: 0
+  list:
+    0: ["dataset_preprocess_base", True]
+    1: ["dataset_preprocess_with_special_tokens", False]
+    2: ["dataset_with_full_special_tokens", False]
+    3: ["dataset_with_least_special_tokens", False]
+    4: ["data_preprocess2", False]
+    5: ["dataset_preprocess_base_for_AEDA", True]
+    6: ["data_preprocess_Cap_Token", False]
+EDA_AEDA:
+  set: True # EDA, AEDA 사용
+  AEDA:
+    set: False # AEDA 설정
+    tqdm: False # True -> tqdm(상태바)표시
+    morpheme_analyzer: "Mecab" # ["Okt", "Kkma", "Komoran", "Mecab", "Hannanum"] 골라쓰세요
+    punctuations: [".", ",", "!", "?", ";", ":"] # 기본값 [".", ",", "!", "?", ";", ":"]
+    generator:
+      punc_ratio: 0.9 # Augmentation 비율
+      repetition: 2 # 몇개의 AEDA 문장을 만들것인가? AEDA후 훈련데이터셋 갯수 = 훈련데이터셋 * (1 + repetition)
+train_args: # 훈련 전용 변수 설정
+  log: "logs" # 저장할 폴더
+  output: "results" # 저장할 폴더
+  batch_size: 64
+  learning_rate: 1e-4
+  weight_decay: 0.01
+  num_train_epochs: 1
+  warmup_steps: 500
+  fp16: True # 최신 NVIDIA 그래픽카드 기술 적용
+  dataloader_pin_memory: True # default = True
+  gradient_accumulation_steps: 4 # default = 1
+  seed: 42
+  save_total_limit: 3
+  save_steps: 500
+  logging_steps: 100
+  eval_steps: 500
+  evaluation_strategy: "steps"
+  disable_tqdm: True # tqdm (상태바) 숨기기
+hyperparameters:
+  set: False # 하이퍼파라미터 설정시 transformers 4.10.0 으로 쓰세요 4.11버전대는 에러뜨네요
+  backend: "optuna"
+  n_trials: 10 # 하이퍼파라미터 최적화 시도 횟수
+  dataset:
+    train:
+      add_data: False # 추가 데이터 불러오기
+      shuffle: True # K_fold로 나눌때 섞는다.
+      num: 0
+    valid:
+      n_splits: 20 # 전체데이터 / n 만큼의 데이터를 사용
+      add_data: False # 추가 데이터 불러오기
+      shuffle: True # K_fold로 나눌때 섞는다.
+      num: 0
+  cfg:
+    learning_rate:
+      min: 1e-6
+      max: 5e-4
+    num_train_epochs:
+      min: 5
+      max: 8
+    seed:
+      min: 1
+      max: 60
+    warmup_step:
+      min: 100
+      max: 1000
+    weight_decay:
+      min: 0.001
+      max: 0.1
+    gradient_accumulation_steps:
+      min: 1
+      max: 4
+    per_device_train_batch_size: [32, 64]

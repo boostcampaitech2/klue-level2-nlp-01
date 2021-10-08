@@ -137,4 +137,13 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 ._*
-*.pkl
+nohup.out
+best_model
+results
+models
+
+# hydra output
+outputs
+
+# cfg
+main_cfg.yaml
