@@ -144,3 +144,6 @@ models
 
 # hydra output
 outputs
+
+# cfg
+main_cfg.yaml
