@@ -37,8 +37,6 @@ class FeatureExtractionBert(nn.Module):
         return_dict=None,
     ):
 
-        # return_dict = return_dict if return_dict is not None else self.config.use_return_dict
-
         outputs = self.Bert(
             input_ids,
             attention_mask=attention_mask,
@@ -61,12 +59,17 @@ def FeatureExtractor(feature_extractor, dataloader):
     outputs = []
     for i, data in enumerate(tqdm(dataloader)):
         with torch.no_grad():
+            print(feature_extractor(
+                input_ids=data['input_ids'].to(device),
+                attention_mask=data['attention_mask'].to(device),
+                token_type_ids=data['token_type_ids'].to(device)
+                ))
             outputs.append(feature_extractor(
                 input_ids=data['input_ids'].to(device),
                 attention_mask=data['attention_mask'].to(device),
                 token_type_ids=data['token_type_ids'].to(device)
-                ).pooler_output)
-    return torch.cat(outputs).detach().cpu().numpy()
+                ).pooled_output.detach().cpu().numpy())
+    return np.concatenate(outputs)
 
 def PrepareFeatures():
     # 가장 점수 높았던 베이스라인 모델 불러오기
@@ -116,8 +119,17 @@ def train():
     model_cat_reduced = CatBoostClassifier(task_type="GPU", devices=device)
     model_cat_reduced.fit(train_data, eval_set=valid_data, use_best_model=True, early_stopping_rounds=100, verbose=100)
 
-    y_pred_valid = model_cat.predict(ml_valid)
-    print(f'Accuracy: {accuracy_score(valid_data, y_pred_valid)}, f1_score: {f1_score(valid_data, y_pred_valid, average="micro")}')
+    y_pred_valid = model_cat_reduced.predict(ml_valid)
+    
+    preds = model_cat_reduced.predict(ml_valid)
+    probs = model_cat_reduced.predict_proba(ml_valid)
+    labels = valid_label
+    
+    f1 = klue_re_micro_f1(preds, labels)
+    auprc = klue_re_auprc(probs, labels)
+    acc = accuracy_score(labels, preds)
+
+    print(f'Accuracy: {acc}, f1_score: {f1}, auprc: {auprc}')
 
 def main():
     train()
