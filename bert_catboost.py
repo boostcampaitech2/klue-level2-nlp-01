@@ -68,7 +68,7 @@ def FeatureExtractor(feature_extractor, dataloader):
                 input_ids=data['input_ids'].to(device),
                 attention_mask=data['attention_mask'].to(device),
                 token_type_ids=data['token_type_ids'].to(device)
-                ).pooled_output.detach().cpu().numpy())
+                ).pooler_output.detach().cpu().numpy())
     return np.concatenate(outputs)
 
 def PrepareFeatures():

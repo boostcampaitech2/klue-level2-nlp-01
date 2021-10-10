@@ -71,8 +71,7 @@ class BertLSTM(nn.Module):
         
         lstm_outputs, _ = self.lstm(outputs[0])
         # hidden_outputs = outputs[0]
-        # pooled_output = outputs[1]
-        
+        # pooler_output = outputs[1]
         # lstm_outputs[:,-1,:] : context vector
         pooled_output = self.dropout(lstm_outputs[:,-1,:])
         logits = self.classifier(pooled_output)
@@ -86,17 +85,6 @@ class BertLSTM(nn.Module):
             else:
                 loss_fct = nn.CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-
-        # if not return_dict:
-        #     output = (logits,) + outputs[2:]
-        #     return ((loss,) + output) if loss is not None else output
-
-        # return SequenceClassifierOutput(
-        #     loss=loss,
-        #     logits=logits,
-        #     hidden_states=outputs.hidden_states,
-        #     attentions=outputs.attentions,
-        # )
         
         outputs = (loss, logits)
         return outputs
@@ -163,7 +151,6 @@ def train():
     model.save_pretrained('./best_model/lstm')
 
 def main():
-    showUtilization()
     train()
 
 if __name__ == '__main__':
